@@ -1,0 +1,1680 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+  <title>СОНП — Участник</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet"/>
+
+  <style>
+    :root{
+      --bg:#f6f8fb;
+      --card:#ffffff;
+      --text:#101827;
+      --muted:#5c6b86;
+      --accent:#2b74ff;
+      --accent-soft:#eaf0ff;
+      --ok:#16a34a;
+      --warn:#f59e0b;
+      --bad:#ef4444;
+      --radius:18px;
+      --shadow:0 14px 36px rgba(15,23,42,.12);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background:radial-gradient(circle at top,#edf2ff 0,#f6f8fb 40%,#f6f8fb 100%);
+      color:var(--text);
+      padding:20px;
+    }
+    .screen{
+      display:none;
+      max-width:760px;
+      margin:0 auto;
+      min-height:calc(100dvh - 40px);
+    }
+    .screen.active{display:block}
+    .card{
+      background:var(--card);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:18px 18px 20px;
+      margin:12px 0;
+      border:1px solid rgba(15,23,42,.03);
+    }
+    h1{margin:4px 0 2px;font-size:1.9rem;letter-spacing:.02em}
+    h2{margin:0 0 4px}
+    h3{margin:0 0 6px}
+    .muted{color:var(--muted)}
+    label{display:block;margin:10px 0 6px;font-weight:600;font-size:.95rem}
+    input[type="text"]{
+      width:100%;
+      padding:14px 14px;
+      border-radius:12px;
+      border:1.5px solid #e3e9f5;
+      font-size:16px;
+      outline:none;
+      transition:border-color .18s, box-shadow .18s, background .18s;
+      background:#fdfdff;
+    }
+    input[type="text"]:focus{
+      border-color:#c7d6ff;
+      box-shadow:0 0 0 4px #eaf0ff;
+      background:#ffffff;
+    }
+    .btn{
+      appearance:none;
+      border:0;
+      border-radius:12px;
+      padding:14px 16px;
+      background:var(--accent);
+      color:#fff;
+      font-weight:800;
+      cursor:pointer;
+      font-size:.98rem;
+      letter-spacing:.04em;
+      text-transform:uppercase;
+      box-shadow:0 10px 24px rgba(37,99,235,.35);
+      transition:transform .12s, box-shadow .12s, opacity .12s, background .12s;
+    }
+    .btn:hover{transform:translateY(-1px);box-shadow:0 14px 32px rgba(37,99,235,.38);}
+    .btn:active{transform:translateY(1px);box-shadow:0 6px 14px rgba(37,99,235,.25);}
+    .btn.ghost{
+      background:#fff;
+      color:var(--accent);
+      border:2px solid var(--accent);
+      box-shadow:none;
+      text-transform:none;
+      letter-spacing:0;
+    }
+    .btn:disabled{opacity:.6;cursor:not-allowed;box-shadow:none;transform:none}
+    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .top{display:flex;justify-content:space-between;align-items:center;gap:12px}
+    .pill{
+      background:#eef2ff;
+      color:#1e3a8a;
+      border-radius:999px;
+      padding:6px 12px;
+      font-weight:800;
+      border:1px solid #c7d2fe;
+      font-size:.88rem;
+      white-space:nowrap;
+    }
+    .pill.timer{
+      background:#0f172a;
+      color:#fbbf24;
+      border-color:#111827;
+      font-variant-numeric:tabular-nums;
+      box-shadow:0 0 0 1px rgba(15,23,42,.7), 0 0 18px rgba(251,191,36,.4);
+    }
+    ul{margin:0;padding-left:18px}
+    li{margin:2px 0}
+
+    /* JOIN */
+    .brand-mark{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+    }
+    .brand-logo{
+      width:32px;height:32px;border-radius:12px;
+      background:radial-gradient(circle at 25% 0,#f97316 0,#eab308 30%,#0ea5e9 70%,#1d4ed8 100%);
+      box-shadow:0 0 0 2px rgba(255,255,255,.9),0 10px 22px rgba(30,64,175,.55);
+      position:relative;
+      overflow:hidden;
+    }
+    .brand-logo::before{
+      content:'Σ';
+      position:absolute;
+      inset:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight:900;
+      color:#0b1120;
+    }
+
+    /* QUESTION BASIC */
+    .answers{display:grid;gap:10px;margin-top:10px}
+    .opt{
+      width:100%;
+      text-align:left;
+      padding:14px;
+      border-radius:14px;
+      border:1.5px solid #e5e7f2;
+      background:#ffffff;
+      font-weight:600;
+      cursor:pointer;
+      font-size:.96rem;
+      transition:border-color .15s, box-shadow .15s, transform .08s, background .15s;
+    }
+    .opt span.label{
+      display:inline-block;
+      min-width:26px;
+      text-align:center;
+      margin-right:6px;
+      padding:3px 0;
+      border-radius:999px;
+      background:#eef2ff;
+      color:#3730a3;
+      font-weight:800;
+      font-size:.8rem;
+    }
+    .opt:hover{
+      border-color:#c7d2fe;
+      box-shadow:0 6px 16px rgba(148,163,255,.35);
+      transform:translateY(-1px);
+    }
+    .opt.selected{
+      border-color:#4f46e5;
+      box-shadow:0 0 0 2px rgba(79,70,229,.45);
+      background:#eef2ff;
+    }
+
+    #textBox input[type="text"]{
+      background:#f9fafb;
+    }
+
+    /* CARD VISUAL BASE */
+    .card-visual{
+      margin:16px 0 10px;
+      padding:20px 20px 18px;
+      border-radius:20px;
+      color:#e5edff;
+      position:relative;
+      overflow:hidden;
+      background:radial-gradient(circle at -10% -20%,#4f46e5 0,#0f172a 45%,#020617 100%);
+      border:1px solid rgba(148,163,255,.5);
+    }
+    .card-visual-header{
+      font-size:.8rem;
+      text-transform:uppercase;
+      letter-spacing:.16em;
+      opacity:.8;
+      margin-bottom:6px;
+    }
+    .card-visual-title{
+      font-weight:700;
+      font-size:1.05rem;
+      margin-bottom:10px;
+    }
+
+    /* Общий блок ввода внутри карточек (для текстовых задач) */
+    .card-input{
+      margin-top:14px;
+      padding:10px 10px 12px;
+      border-radius:14px;
+      background:rgba(15,23,42,.88);
+      border:1px solid rgba(148,163,255,.7);
+    }
+    .card-input textarea{
+      width:100%;
+      min-height:80px;
+      resize:vertical;
+      border-radius:10px;
+      border:1px solid #e5e7eb;
+      padding:8px 10px;
+      font-size:.9rem;
+      font-family:inherit;
+      outline:none;
+    }
+    .card-input textarea:focus{
+      border-color:#c7d2fe;
+      box-shadow:0 0 0 3px rgba(129,140,248,.25);
+      background:#020617;
+      color:#e5e7eb;
+    }
+    .card-input .btn{
+      margin-top:8px;
+      padding:10px 14px;
+      font-size:.85rem;
+      text-transform:none;
+      letter-spacing:.02em;
+      box-shadow:0 8px 20px rgba(79,70,229,.5);
+    }
+
+    /* FISH */
+    .fish-list{
+      display:flex;
+      flex-wrap:wrap;
+      gap:12px;
+    }
+    .fish{
+      flex:1 1 150px;
+      min-width:150px;
+      background:linear-gradient(135deg,rgba(15,23,42,.9),rgba(37,99,235,.9));
+      border-radius:999px;
+      padding:8px 12px;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      box-shadow:0 8px 18px rgba(37,99,235,.45);
+      border:1px solid rgba(191,219,254,.6);
+      font-size:.9rem;
+    }
+    .fish-icon{
+      width:32px;height:32px;border-radius:999px;
+      background:radial-gradient(circle at 30% 20%,#facc15 0,#f97316 45%,#ea580c 100%);
+      display:flex;align-items:center;justify-content:center;
+      color:#0b1120;font-weight:800;font-size:.8rem;
+      position:relative;overflow:hidden;
+    }
+    .fish-icon::after{
+      content:'🐟';
+      position:absolute;
+      transform:translateX(1px);
+      font-size:1.2rem;
+      opacity:.9;
+    }
+    .fish-body{
+      flex:1;
+      line-height:1.25;
+    }
+
+    /* PLANETS */
+    .card-visual--planets_select{
+      background:radial-gradient(circle at 20% -10%,#f97316 0,#0f172a 45%,#020617 100%);
+    }
+    .planet-row{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .planet{
+      width:80px;height:80px;border-radius:999px;
+      background:radial-gradient(circle at 30% 10%,#fef9c3 0,#fde047 30%,#f97316 70%,#b91c1c 100%);
+      box-shadow:0 0 22px rgba(248,250,252,.25);
+      position:relative;
+      display:flex;align-items:center;justify-content:center;
+      font-weight:900;font-size:1rem;color:#0b1120;
+    }
+    .planet-ring{
+      position:absolute;
+      inset:-7px;
+      border-radius:50%;
+      border:2px solid rgba(15,23,42,.4);
+      border-top-color:rgba(248,250,252,.7);
+      opacity:.9;
+      transform:rotate(-18deg);
+    }
+
+    /* CLOCK */
+    .card-visual--clock_equal_sums{
+      background:radial-gradient(circle at 20% -10%,#38bdf8 0,#020617 55%,#000 100%);
+    }
+    .clock{
+      width:230px;height:230px;border-radius:50%;
+      border:3px solid rgba(148,163,255,.9);
+      margin:6px auto 0;
+      position:relative;
+      box-shadow:0 0 0 2px rgba(15,23,42,.9),0 0 40px rgba(56,189,248,.35);
+      background:radial-gradient(circle,#020617 0,#020617 40%,#020617 100%);
+    }
+    .clock-center{
+      position:absolute;left:50%;top:50%;
+      width:12px;height:12px;border-radius:50%;
+      background:#e5e7eb;
+      transform:translate(-50%,-50%);
+      box-shadow:0 0 10px rgba(148,163,255,.7);
+    }
+    .clock-number{
+      position:absolute;
+      width:24px;height:24px;border-radius:50%;
+      display:flex;align-items:center;justify-content:center;
+      font-size:.8rem;font-weight:700;
+      background:rgba(15,23,42,.9);
+      color:#e5edff;
+      border:1px solid rgba(148,163,255,.7);
+    }
+    .clock-chord{
+      position:absolute;
+      width:2px;height:100%;
+      left:50%;top:0;
+      transform-origin:50% 50%;
+      pointer-events:none;
+    }
+    .clock-chord::before{
+      content:'';position:absolute;
+      top:18%;bottom:18%;left:0;right:0;
+      margin:auto;
+      background:linear-gradient(to bottom,#f97316,#facc15);
+      box-shadow:0 0 12px rgba(250,204,21,.7);
+    }
+
+    /* WORD LADDER */
+    .card-visual--word_ladder_lisa_nora{
+      background:linear-gradient(135deg,#4f46e5,#0f172a);
+    }
+    .ladder{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      position:relative;
+      padding-left:10px;
+    }
+    .ladder::before{
+      content:'';position:absolute;
+      left:16px;top:4px;bottom:4px;
+      width:2px;
+      background:linear-gradient(to bottom,rgba(191,219,254,.2),rgba(96,165,250,.9));
+    }
+    .ladder-step{
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+    .ladder-badge{
+      width:24px;height:24px;border-radius:999px;
+      background:#0ea5e9;
+      display:flex;align-items:center;justify-content:center;
+      font-size:.75rem;font-weight:800;
+      box-shadow:0 0 10px rgba(59,130,246,.65);
+      color:#0b1120;
+    }
+    .ladder-word{
+      min-width:60px;
+      padding:4px 10px;
+      border-radius:999px;
+      background:rgba(15,23,42,.9);
+      border:1px solid rgba(148,163,255,.6);
+      font-weight:700;
+      letter-spacing:.08em;
+      font-size:.85rem;
+    }
+    .ladder-input{
+      width:80px;
+      padding:4px 10px;
+      border-radius:999px;
+      border:1px solid rgba(148,163,255,.8);
+      background:#020617;
+      color:#e5e7eb;
+      font-weight:600;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      font-size:.8rem;
+      outline:none;
+    }
+    .ladder-input::placeholder{
+      color:rgba(148,163,255,.6);
+    }
+    .ladder-input:focus{
+      border-color:#c7d2fe;
+      box-shadow:0 0 0 2px rgba(129,140,248,.6);
+    }
+    .ladder-hint{
+      font-size:.8rem;
+      opacity:.85;
+      margin-top:4px;
+    }
+
+    /* ROBOT */
+    .card-visual--robot_pair_to_target{
+      background:radial-gradient(circle at 15% -15%,#22c55e 0,#0f172a 55%,#000 100%);
+    }
+    .robot-row{
+      display:flex;
+      align-items:center;
+      gap:16px;
+      flex-wrap:wrap;
+    }
+    .robot-face{
+      width:80px;height:80px;border-radius:22px;
+      background:linear-gradient(135deg,#22c55e,#16a34a);
+      box-shadow:0 10px 24px rgba(22,163,74,.6);
+      position:relative;
+      border:2px solid #bbf7d0;
+    }
+    .robot-face::before,
+    .robot-face::after{
+      content:'';position:absolute;
+      top:24px;
+      width:14px;height:10px;
+      border-radius:999px;
+      background:#022c22;
+      box-shadow:0 0 0 1px rgba(34,197,94,.7);
+    }
+    .robot-face::before{left:15px;}
+    .robot-face::after{right:15px;}
+    .robot-mouth{
+      position:absolute;
+      left:18px;right:18px;bottom:20px;
+      height:7px;
+      border-radius:999px;
+      background:#022c22;
+      box-shadow:0 0 0 1px rgba(34,197,94,.8);
+    }
+    .robot-formula{
+      flex:1;
+      font-family:system-ui,-apple-system,BlinkMacSystemFont,"SF Mono",ui-monospace,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
+      font-size:.95rem;
+    }
+
+    /* CUBE NETS */
+    .card-visual--cube_nets_select{
+      background:linear-gradient(135deg,#22c55e,#4f46e5,#0f172a);
+    }
+    .nets-row{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+    .net{
+      flex:1 1 120px;
+      min-width:120px;
+      border-radius:14px;
+      padding:6px 8px 10px;
+      background:rgba(15,23,42,.8);
+      border:1px solid rgba(209,250,229,.7);
+      position:relative;
+      font-size:.8rem;
+    }
+    .net-label{
+      position:absolute;
+      top:5px;right:6px;
+      font-weight:800;
+      color:#bbf7d0;
+    }
+    .net-grid{
+      display:grid;
+      grid-template-columns:repeat(3,20px);
+      grid-auto-rows:20px;
+      gap:4px;
+      margin-top:12px;
+    }
+    .net-cell{
+      border-radius:4px;
+      border:1px solid rgba(148,163,255,.8);
+      background:rgba(15,23,42,.9);
+    }
+    .net-cell.center{
+      background:rgba(59,130,246,.85);
+    }
+
+    /* GRAPHS */
+    .card-visual--graph_match_trend{
+      background:radial-gradient(circle at -10% -10%,#22d3ee 0,#0f172a 50%,#000 100%);
+    }
+    .graphs-row{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+    .graph-card{
+      flex:1 1 160px;
+      min-width:160px;
+      border-radius:14px;
+      padding:6px 8px 10px;
+      background:rgba(15,23,42,.9);
+      border:1px solid rgba(148,163,255,.8);
+      font-size:.8rem;
+    }
+    .graph-label{
+      font-weight:700;
+      margin-bottom:4px;
+      color:#bfdbfe;
+    }
+    .graph-canvas{
+      position:relative;
+      height:110px;
+      border-radius:10px;
+      background:radial-gradient(circle at 0 0,rgba(56,189,248,.28),rgba(15,23,42,1));
+      overflow:hidden;
+      padding:6px 8px 8px;
+    }
+    .graph-svg{
+      width:100%;
+      height:100%;
+      display:block;
+    }
+    .graph-axis{
+      stroke:rgba(148,163,255,.8);
+      stroke-width:1;
+    }
+    .graph-grid{
+      stroke:rgba(148,163,255,.3);
+      stroke-width:0.5;
+      stroke-dasharray:3 3;
+    }
+    .graph-path-a{
+      fill:none;
+      stroke:#22c55e;
+      stroke-width:2.4;
+      stroke-linecap:round;
+      stroke-linejoin:round;
+    }
+    .graph-path-b{
+      fill:none;
+      stroke:#f97316;
+      stroke-width:2.4;
+      stroke-linecap:round;
+      stroke-linejoin:round;
+    }
+
+    /* ROUTE */
+    .card-visual--route_min_steps{
+      background:radial-gradient(circle at 10% -10%,#22c55e 0,#0f172a 55%,#000 100%);
+    }
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(7,20px);
+      grid-auto-rows:20px;
+      gap:4px;
+      margin-top:6px;
+      justify-content:flex-start;
+    }
+    .cell{
+      border-radius:5px;
+      background:rgba(15,23,42,.9);
+      border:1px solid rgba(34,197,94,.5);
+    }
+    .cell.block{
+      background:rgba(127,29,29,.9);
+      border-color:rgba(248,113,113,.8);
+    }
+    .cell.path{
+      background:rgba(22,163,74,.9);
+      border-color:#bbf7d0;
+      box-shadow:0 0 8px rgba(34,197,94,.7);
+    }
+    .cell.start{
+      background:rgba(59,130,246,.95);
+      border-color:#bfdbfe;
+    }
+    .cell.finish{
+      background:rgba(234,179,8,.95);
+      border-color:#facc15;
+    }
+
+    /* BALANCE */
+    .card-visual--balance_relations{
+      background:linear-gradient(135deg,#f97316,#b91c1c,#0f172a);
+    }
+    .scale{
+      margin-top:6px;
+    }
+    .scale-bar{
+      width:100%;
+      height:4px;
+      border-radius:4px;
+      background:linear-gradient(to right,#fecaca,#fee2e2);
+      position:relative;
+    }
+    .scale-fulcrum{
+      position:absolute;
+      left:50%;
+      transform:translateX(-50%) skewX(-12deg);
+      bottom:-12px;
+      width:18px;height:18px;
+      background:#1f2937;
+      border-radius:3px;
+      box-shadow:0 0 0 1px rgba(248,250,252,.4);
+    }
+    .shapes-row{
+      display:flex;
+      justify-content:space-between;
+      margin-top:14px;
+      font-size:.82rem;
+    }
+    .shape-set{
+      display:flex;
+      align-items:center;
+      gap:4px;
+    }
+    .shape{
+      width:16px;height:16px;border-radius:4px;
+      background:#f97316;
+    }
+    .shape.circle{
+      border-radius:999px;
+      background:#facc15;
+    }
+    .shape.tri{
+      width:0;height:0;
+      border-left:9px solid transparent;
+      border-right:9px solid transparent;
+      border-bottom:16px solid #22d3ee;
+      border-radius:2px;
+    }
+
+    /* PATTERN MATRIX */
+    .card-visual--pattern_matrix{
+      background:radial-gradient(circle at 10% -10%,#6366f1 0,#0f172a 45%,#020617 100%);
+    }
+    .matrix{
+      display:grid;
+      grid-template-columns:repeat(3,50px);
+      grid-auto-rows:50px;
+      gap:8px;
+      margin-top:6px;
+    }
+    .matrix-cell{
+      border-radius:10px;
+      border:1px solid rgba(191,219,254,.8);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:1rem;
+      font-weight:700;
+      background:rgba(15,23,42,.92);
+    }
+    .matrix-cell.question{
+      border-style:dashed;
+      color:#fbbf24;
+      text-shadow:0 0 12px rgba(250,204,21,.9);
+    }
+
+    /* HISTORY TABLE */
+    .history-table-wrapper{
+      margin-top:8px;
+      overflow-x:auto;
+    }
+    .history-table{
+      width:100%;
+      border-collapse:collapse;
+      font-size:.86rem;
+    }
+    .history-table th,
+    .history-table td{
+      padding:6px 8px;
+      border-bottom:1px solid #e5e7f2;
+      text-align:left;
+      vertical-align:top;
+    }
+    .history-table th{
+      font-weight:600;
+      color:var(--muted);
+      font-size:.78rem;
+      text-transform:uppercase;
+      letter-spacing:.06em;
+    }
+    .history-table tr:last-child td{
+      border-bottom:none;
+    }
+    .history-table td.status-ok{
+      color:var(--ok);
+      font-weight:600;
+    }
+    .history-table td.status-bad{
+      color:var(--bad);
+      font-weight:600;
+    }
+
+    /* TOAST */
+    .toast{
+      position:fixed;
+      left:50%;
+      bottom:16px;
+      transform:translateX(-50%);
+      padding:11px 14px;
+      background:#0f172a;
+      color:#e5e7eb;
+      border-radius:12px;
+      opacity:.98;
+      box-shadow:0 10px 26px rgba(15,23,42,.6);
+      font-size:.9rem;
+      max-width:90%;
+      z-index:20;
+    }
+  </style>
+</head>
+<body>
+  <div class="toast" id="toast" style="display:none"></div>
+
+  <!-- JOIN -->
+  <div class="screen active" id="join">
+    <div class="card">
+      <div class="top">
+        <div>
+          <div class="brand-mark">
+            <div class="brand-logo"></div>
+            <div>
+              <h1>СОНП</h1>
+              <div class="muted">Система оценки научного потенциала</div>
+            </div>
+          </div>
+        </div>
+        <div class="pill">Участник</div>
+      </div>
+    </div>
+    <div class="card">
+      <label>Код комнаты</label>
+      <input id="room" type="text" maxlength="4" placeholder="Например: AB3D"/>
+      <label>Ваш ник</label>
+      <input id="name" type="text" maxlength="32" placeholder="Иван"/>
+      <div style="height:12px"></div>
+      <button class="btn" id="btnJoin">Войти в сессию</button>
+    </div>
+    <div class="card">
+      <div class="top">
+        <div class="muted">Банк заданий</div>
+        <button class="btn ghost" id="btnReload">Перезагрузить tasks.json</button>
+      </div>
+      <div id="taskStats" class="muted" style="margin-top:8px;font-size:.9rem">Загрузка…</div>
+    </div>
+  </div>
+
+  <!-- LOBBY -->
+  <div class="screen" id="lobby">
+    <div class="card top">
+      <div><b>Комната:</b> <span id="roomShow">----</span></div>
+      <div class="pill" id="count">0/10</div>
+    </div>
+    <div class="card">
+      <h3 style="margin:0 0 8px">Игроки</h3>
+      <ul id="players" class="muted" style="margin:0;"></ul>
+      <div class="muted" style="margin-top:8px;font-size:.9rem">
+        Ожидаем, пока администратор запустит сессию…
+      </div>
+    </div>
+  </div>
+
+  <!-- QUESTION -->
+  <div class="screen" id="question">
+    <div class="card top">
+      <div><b>Раунд</b> <span id="rnum">1</span>/<span id="rtotal">6</span></div>
+      <div class="pill timer" id="timer">0:45</div>
+    </div>
+    <div class="card">
+      <div class="muted" id="cat">Категория</div>
+
+      <!-- ВИЗУАЛЬНАЯ КАРТОЧКА -->
+      <div id="cardVisual" class="card-visual" style="display:none"></div>
+
+      <h3 id="qtext" style="margin-top:6px"></h3>
+
+      <!-- Варианты для mcq -->
+      <div id="mcq" class="answers" style="display:none"></div>
+
+      <!-- Поле ввода для текстового ответа (для обычных задач, не карточек) -->
+      <div id="textBox" style="display:none;margin-top:10px">
+        <input id="answerText" type="text" placeholder="Ваш ответ" />
+        <div style="height:10px"></div>
+        <button class="btn" id="btnSendText">Отправить ответ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- REVEAL -->
+  <div class="screen" id="reveal">
+    <div class="card top">
+      <div><b>Раунд</b> <span id="rnum2">1</span></div>
+      <div class="pill" id="cat2">Категория</div>
+    </div>
+    <div class="card">
+      <div class="muted">Задание</div>
+      <h3 id="qtext2" style="margin-top:6px"></h3>
+      <div id="correct" class="muted" style="margin-top:8px;font-size:.9rem"></div>
+    </div>
+    <div class="card">
+      <h3 style="margin:0 0 8px">Ваши и чужие ответы</h3>
+      <ul id="results" style="margin:0;padding-left:18px"></ul>
+    </div>
+    <div class="card">
+      <h3 style="margin:0 0 8px">Текущие очки</h3>
+      <ul id="scores" style="margin:0;padding-left:18px"></ul>
+    </div>
+  </div>
+
+  <!-- FINAL -->
+  <div class="screen" id="final">
+    <div class="card">
+      <h2>Сессия завершена</h2>
+      <div class="muted">Итоговые очки участников</div>
+    </div>
+    <div class="card">
+      <ul id="fscores" style="margin:0;padding-left:18px"></ul>
+    </div>
+    <div class="card">
+      <h3 style="margin:0 0 8px">Мои ответы</h3>
+      <div class="muted" style="font-size:.9rem;margin-bottom:4px">
+        Таблица с вашей полной историей решений по раундам.
+      </div>
+      <div class="history-table-wrapper">
+        <table class="history-table">
+          <thead>
+            <tr>
+              <th>Раунд</th>
+              <th>Категория</th>
+              <th>Кратко о задании</th>
+              <th>Мой ответ</th>
+              <th>Верно</th>
+              <th>Баллы</th>
+              <th>Время</th>
+            </tr>
+          </thead>
+          <tbody id="myHistoryBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+<script>
+  const $ = (id)=>document.getElementById(id);
+  const host = location.host || '127.0.0.1:8000';
+  let ws = null, playerId=null, roomCode=null, timerId=null, deadline=0, myHistory=[];
+
+  const toastEl = $('toast');
+  function toast(msg){
+    toastEl.textContent = msg;
+    toastEl.style.display = 'block';
+    setTimeout(()=>{ toastEl.style.display='none'; }, 1700);
+  }
+  function fmt(sec){
+    sec = Math.max(0, sec|0);
+    return `${Math.floor(sec/60)}:${String(sec%60).padStart(2,'0')}`;
+  }
+  function show(id){
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+    $(id).classList.add('active');
+  }
+  function tick(){
+    const left = Math.max(0, Math.floor(deadline - Date.now()/1000));
+    $('timer').textContent = fmt(left);
+    if (left<=0) clearInterval(timerId);
+  }
+
+  async function loadStats(){
+    try{
+      const r = await fetch('/api/tasks');
+      const data = await r.json();
+      const lines = [`Всего задач: ${data.total}`];
+      for (const [k,v] of Object.entries(data.categories||{})) lines.push(`${k}: ${v}`);
+      $('taskStats').textContent = lines.join('  •  ');
+    }catch(e){
+      $('taskStats').textContent = 'Не удалось получить статистику задач';
+    }
+  }
+  $('btnReload').onclick = async ()=>{
+    await fetch('/api/tasks/reload', {method:'POST'}).catch(()=>{});
+    loadStats();
+  };
+  loadStats();
+
+  $('room').addEventListener('input', e=>{
+    e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,4);
+  });
+
+  function sendTextAnswer(text){
+    if (!text){
+      toast('Введите ответ');
+      return;
+    }
+    if (!ws || !roomCode || !playerId) return;
+    ws.send(JSON.stringify({ type:'answer', roomCode, playerId, text }));
+    toast('Ответ отправлен');
+  }
+
+  $('btnJoin').onclick = ()=>{
+    const code = $('room').value.trim().toUpperCase();
+    const name = $('name').value.trim();
+    if (code.length!==4){ toast('Код комнаты — 4 символа'); return; }
+    if (!name){ toast('Введите ник'); return; }
+
+    roomCode = code;
+    myHistory = [];
+    ws = new WebSocket(`ws://${host}/ws`);
+    ws.onopen = ()=>{
+      ws.send(JSON.stringify({ type:'join', roomCode: code, playerName: name }));
+    };
+    ws.onmessage = onMessage;
+    ws.onerror = ()=> toast('Ошибка соединения');
+  };
+
+  $('btnSendText').onclick = ()=>{
+    const text = $('answerText').value.trim();
+    sendTextAnswer(text);
+    $('btnSendText').disabled = true;
+  };
+
+  function onMessage(e){
+    const m = JSON.parse(e.data);
+    if (m.type === 'error'){
+      toast(m.message || 'Ошибка');
+      return;
+    }
+
+    if (m.type === 'joined'){
+      playerId = m.playerId;
+      $('roomShow').textContent = m.roomCode;
+      renderPlayers(m.players || []);
+      $('count').textContent = `${(m.players||[]).length}/10`;
+      show('lobby');
+      return;
+    }
+
+    if (m.type === 'players'){
+      renderPlayers(m.players || []);
+      $('count').textContent = `${(m.players||[]).length}/10`;
+      return;
+    }
+
+    if (m.type === 'game_started'){
+      toast('Сессия началась');
+      return;
+    }
+
+    if (m.type === 'question'){
+      handleQuestion(m);
+      return;
+    }
+
+    if (m.type === 'reveal'){
+      handleReveal(m);
+      return;
+    }
+
+    if (m.type === 'final'){
+      handleFinal(m);
+      return;
+    }
+  }
+
+  function renderPlayers(players){
+    const ul = $('players');
+    ul.innerHTML = '';
+    (players || []).forEach(p=>{
+      const li = document.createElement('li');
+      li.textContent = `${p.name} — ${p.score || 0}`;
+      ul.appendChild(li);
+    });
+  }
+
+  function clearCardVisual(){
+    const cv = $('cardVisual');
+    cv.innerHTML = '';
+    cv.style.display = 'none';
+    cv.className = 'card-visual';
+  }
+
+  function handleQuestion(m){
+    $('rnum').textContent = m.round;
+    $('rtotal').textContent = m.totalRounds;
+    $('cat').textContent = m.category;
+    $('qtext').textContent = m.prompt;
+
+    const tl = m.timeLimit || 45;
+    deadline = Date.now()/1000 + tl;
+    clearInterval(timerId);
+    timerId = setInterval(tick, 250);
+    tick();
+
+    if (m.mode === 'card'){
+      renderCardVisual(m);
+    }else{
+      clearCardVisual();
+    }
+
+    if (m.qtype === 'mcq'){
+      $('mcq').style.display = '';
+      $('textBox').style.display = 'none';
+      renderOptions(m);
+    }else{
+      $('mcq').style.display = 'none';
+      if (m.mode === 'card'){
+        $('textBox').style.display = 'none';
+      }else{
+        $('textBox').style.display = '';
+        $('answerText').value = '';
+        $('btnSendText').disabled = false;
+        $('answerText').focus();
+      }
+    }
+
+    show('question');
+  }
+
+  function renderOptions(m){
+    const root = $('mcq');
+    root.innerHTML = '';
+    const opts = m.options || [];
+    opts.forEach((opt, idx)=>{
+      const btn = document.createElement('button');
+      btn.className = 'opt';
+      const labelChar = String.fromCharCode(0x0410 + idx); // А,Б,В,Г...
+      btn.innerHTML = `<span class="label">${labelChar}</span>${escapeHtml(opt)}`;
+      btn.onclick = ()=>{
+        document.querySelectorAll('.opt').forEach(x=>x.classList.remove('selected'));
+        btn.classList.add('selected');
+        if (!ws || !roomCode || !playerId) return;
+        ws.send(JSON.stringify({ type:'answer', roomCode, playerId, choice: idx }));
+      };
+      root.appendChild(btn);
+    });
+  }
+
+  function renderCardVisual(m){
+    const cv = $('cardVisual');
+    clearCardVisual();
+    cv.style.display = 'block';
+    cv.classList.add('card-visual--'+(m.subtype || 'generic'));
+
+    const header = document.createElement('div');
+    header.className = 'card-visual-header';
+    header.textContent = 'Когнитивная карточка';
+    cv.appendChild(header);
+
+    const title = document.createElement('div');
+    title.className = 'card-visual-title';
+    switch (m.subtype){
+      case 'fish_odd_one_out':
+        title.textContent = 'Найдите лишнюю рыбку по числовой закономерности';
+        break;
+      case 'planets_select':
+        title.textContent = 'Определите, какие планеты относятся к выбранному критерию';
+        break;
+      case 'clock_equal_sums':
+        title.textContent = 'Разделите циферблат на части с равной суммой';
+        break;
+      case 'word_ladder_lisa_nora':
+        title.textContent = 'Постройте лестницу слов от ЛИСА до НОРА';
+        break;
+      case 'robot_pair_to_target':
+        title.textContent = 'Подберите числа для робота-калькулятора';
+        break;
+      case 'cube_nets_select':
+        title.textContent = 'Выберите корректные развёртки куба';
+        break;
+      case 'graph_match_trend':
+        title.textContent = 'Сопоставьте ситуацию с подходящим графиком';
+        break;
+      case 'route_min_steps':
+        title.textContent = 'Найдите кратчайший маршрут по сетке';
+        break;
+      case 'balance_relations':
+        title.textContent = 'Сделайте вывод о массах фигур по весам';
+        break;
+      case 'pattern_matrix':
+        title.textContent = 'Определите недостающее значение в матрице';
+        break;
+      default:
+        title.textContent = 'Когнитивная задача';
+    }
+    cv.appendChild(title);
+
+    let ladderInputs = null;
+
+    switch (m.subtype){
+      case 'fish_odd_one_out':
+        renderFishCard(cv, m);
+        break;
+      case 'planets_select':
+        renderPlanetsCard(cv);
+        break;
+      case 'clock_equal_sums':
+        renderClockCard(cv);
+        break;
+      case 'word_ladder_lisa_nora':
+        ladderInputs = renderLadderCard(cv);
+        break;
+      case 'robot_pair_to_target':
+        renderRobotCard(cv);
+        break;
+      case 'cube_nets_select':
+        renderCubeNetsCard(cv);
+        break;
+      case 'graph_match_trend':
+        renderGraphsCard(cv);
+        break;
+      case 'route_min_steps':
+        renderRouteCard(cv);
+        break;
+      case 'balance_relations':
+        renderBalanceCard(cv);
+        break;
+      case 'pattern_matrix':
+        renderMatrixCard(cv);
+        break;
+      default:
+        const generic = document.createElement('div');
+        generic.className = 'muted';
+        generic.style.fontSize = '.82rem';
+        generic.textContent = 'Ответ вводите по правилам, указанным в тексте задания.';
+        cv.appendChild(generic);
+    }
+
+    if (m.qtype === 'text'){
+      if (m.subtype === 'word_ladder_lisa_nora'){
+        const wrap = document.createElement('div');
+        wrap.className = 'card-input';
+
+        const info = document.createElement('div');
+        info.className = 'muted';
+        info.style.fontSize = '.8rem';
+        info.textContent = 'Заполните все промежуточные слова в лестнице, затем отправьте ответ.';
+        wrap.appendChild(info);
+
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'btn';
+        btn.textContent = 'Отправить ответ';
+        btn.onclick = ()=>{
+          if (!ladderInputs || ladderInputs.length === 0){
+            toast('Нет полей для ввода');
+            return;
+          }
+          const startWord = 'ЛИСА';
+          const endWord = 'НОРА';
+          const words = [startWord];
+          let firstEmpty = null;
+
+          ladderInputs.forEach(inp=>{
+            const v = (inp.value || '').trim();
+            if (!v && firstEmpty === null) firstEmpty = inp;
+            words.push(v);
+          });
+
+          words.push(endWord);
+
+          if (firstEmpty){
+            toast('Заполните все шаги лестницы');
+            firstEmpty.focus();
+            return;
+          }
+
+          const chain = words.join(' → ');
+          sendTextAnswer(chain);
+          btn.disabled = true;
+        };
+        wrap.appendChild(btn);
+
+        cv.appendChild(wrap);
+      }else{
+        const wrap = document.createElement('div');
+        wrap.className = 'card-input';
+
+        const ta = document.createElement('textarea');
+        ta.id = 'cardAnswer';
+        ta.placeholder = 'Опишите решение или перечислите шаги…';
+        wrap.appendChild(ta);
+
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'btn';
+        btn.textContent = 'Отправить ответ';
+        btn.onclick = ()=>{
+          const text = ta.value.trim();
+          sendTextAnswer(text);
+          btn.disabled = true;
+        };
+        wrap.appendChild(btn);
+
+        cv.appendChild(wrap);
+        setTimeout(()=>ta.focus(), 50);
+      }
+    }
+  }
+
+  function renderFishCard(cv, m){
+    const list = document.createElement('div');
+    list.className = 'fish-list';
+    const opts = m.options || [];
+    opts.forEach((opt)=>{
+      const fish = document.createElement('div');
+      fish.className = 'fish';
+      const icon = document.createElement('div');
+      icon.className = 'fish-icon';
+      const label = document.createElement('div');
+      label.className = 'fish-body';
+      label.textContent = opt;
+      fish.appendChild(icon);
+      fish.appendChild(label);
+      list.appendChild(fish);
+    });
+    cv.appendChild(list);
+  }
+
+  function renderPlanetsCard(cv){
+    const row = document.createElement('div');
+    row.className = 'planet-row';
+    const numbers = [9, 10, 25, 21, 11];
+    numbers.forEach((num)=>{
+      const p = document.createElement('div');
+      p.className = 'planet';
+      const ring = document.createElement('div');
+      ring.className = 'planet-ring';
+      p.appendChild(ring);
+      const inner = document.createElement('div');
+      inner.textContent = num;
+      p.appendChild(inner);
+      row.appendChild(p);
+    });
+    cv.appendChild(row);
+    const hint = document.createElement('div');
+    hint.className = 'muted';
+    hint.style.fontSize = '.78rem';
+    hint.style.marginTop = '6px';
+    hint.textContent = 'Нумерация планет для ответа — слева направо: 1, 2, 3, 4, 5.';
+    cv.appendChild(hint);
+  }
+
+  function renderClockCard(cv){
+    const clock = document.createElement('div');
+    clock.className = 'clock';
+
+    for(let i=1;i<=12;i++){
+      const angle = (i-3) * 30 * Math.PI/180;
+      const r = 90;
+      const x = 115 + r*Math.cos(angle);
+      const y = 115 + r*Math.sin(angle);
+      const n = document.createElement('div');
+      n.className = 'clock-number';
+      n.style.left = (x-12) + 'px';
+      n.style.top = (y-12) + 'px';
+      n.textContent = i;
+      clock.appendChild(n);
+    }
+
+    const chord = document.createElement('div');
+    chord.className = 'clock-chord';
+    chord.style.transform = 'rotate(35deg)';
+    clock.appendChild(chord);
+
+    const center = document.createElement('div');
+    center.className = 'clock-center';
+    clock.appendChild(center);
+
+    cv.appendChild(clock);
+  }
+
+  function renderLadderCard(cv){
+    const ladder = document.createElement('div');
+    ladder.className = 'ladder';
+    const steps = ['ЛИСА','••••','••••','••••','••••','НОРА'];
+    const inputs = [];
+
+    steps.forEach((w, idx)=>{
+      const row = document.createElement('div');
+      row.className = 'ladder-step';
+
+      const badge = document.createElement('div');
+      badge.className = 'ladder-badge';
+      badge.textContent = idx+1;
+
+      row.appendChild(badge);
+
+      if (idx === 0 || idx === steps.length - 1){
+        const word = document.createElement('div');
+        word.className = 'ladder-word';
+        word.textContent = w;
+        row.appendChild(word);
+      }else{
+        const inp = document.createElement('input');
+        inp.type = 'text';
+        inp.maxLength = 4;
+        inp.placeholder = '....';
+        inp.className = 'ladder-input';
+        inp.addEventListener('input', e=>{
+          e.target.value = e.target.value.toUpperCase().replace(/[^А-ЯЁA-Z]/g,'');
+        });
+        inputs.push(inp);
+        row.appendChild(inp);
+      }
+
+      ladder.appendChild(row);
+    });
+
+    const hint = document.createElement('div');
+    hint.className = 'ladder-hint';
+    hint.textContent = 'На каждом шаге меняйте ровно одну букву и используйте только существующие слова.';
+    ladder.appendChild(hint);
+    cv.appendChild(ladder);
+
+    return inputs;
+  }
+
+  function renderRobotCard(cv){
+    const row = document.createElement('div');
+    row.className = 'robot-row';
+    const face = document.createElement('div');
+    face.className = 'robot-face';
+    const mouth = document.createElement('div');
+    mouth.className = 'robot-mouth';
+    face.appendChild(mouth);
+    row.appendChild(face);
+
+    const formula = document.createElement('div');
+    formula.className = 'robot-formula';
+    formula.innerHTML = 'f(a, b) = a · b − 5<br/>Найдите любые целые <b>a</b> и <b>b</b>, чтобы f(a, b) = <b>72</b>.';
+    row.appendChild(formula);
+
+    cv.appendChild(row);
+  }
+
+  function renderCubeNetsCard(cv){
+    const row = document.createElement('div');
+    row.className = 'nets-row';
+
+    const layouts = [
+      { label:'А', mask:[0,1,0, 1,1,1] }, // валидная
+      { label:'Б', mask:[1,1,1, 0,1,0] }, // невалидная
+      { label:'В', mask:[0,1,0, 0,1,1] }, // валидная
+      { label:'Г', mask:[0,1,0, 1,0,1] }, // валидная
+      { label:'Д', mask:[1,0,1, 0,1,0] }  // невалидная
+    ];
+
+    layouts.forEach(layout=>{
+      const net = document.createElement('div');
+      net.className = 'net';
+
+      const lbl = document.createElement('div');
+      lbl.className = 'net-label';
+      lbl.textContent = layout.label;
+      net.appendChild(lbl);
+
+      const grid = document.createElement('div');
+      grid.className = 'net-grid';
+
+      layout.mask.forEach((v,idx)=>{
+        const cell = document.createElement('div');
+        cell.className = 'net-cell';
+        if (v && idx === 1){
+          cell.classList.add('center');
+        }
+        if (!v){
+          cell.style.opacity = '.18';
+          cell.style.borderStyle = 'dashed';
+        }
+        grid.appendChild(cell);
+      });
+
+      net.appendChild(grid);
+      row.appendChild(net);
+    });
+
+    cv.appendChild(row);
+  }
+
+  function renderGraphsCard(cv){
+    const row = document.createElement('div');
+    row.className = 'graphs-row';
+
+    function createGraphCard(labelText, pathType){
+      const card = document.createElement('div');
+      card.className = 'graph-card';
+      const label = document.createElement('div');
+      label.className = 'graph-label';
+      label.textContent = labelText;
+      card.appendChild(label);
+
+      const canvas = document.createElement('div');
+      canvas.className = 'graph-canvas';
+
+      const svgNS = 'http://www.w3.org/2000/svg';
+      const svg = document.createElementNS(svgNS, 'svg');
+      svg.classList.add('graph-svg');
+      svg.setAttribute('viewBox', '0 0 100 60');
+
+      const axisX = document.createElementNS(svgNS, 'line');
+      axisX.setAttribute('x1','10');
+      axisX.setAttribute('y1','50');
+      axisX.setAttribute('x2','95');
+      axisX.setAttribute('y2','50');
+      axisX.classList.add('graph-axis');
+      svg.appendChild(axisX);
+
+      const axisY = document.createElementNS(svgNS, 'line');
+      axisY.setAttribute('x1','10');
+      axisY.setAttribute('y1','50');
+      axisY.setAttribute('x2','10');
+      axisY.setAttribute('y2','10');
+      axisY.classList.add('graph-axis');
+      svg.appendChild(axisY);
+
+      for (let i = 1; i <= 3; i++){
+        const gx = document.createElementNS(svgNS, 'line');
+        gx.setAttribute('x1', String(10 + i*20));
+        gx.setAttribute('y1','50');
+        gx.setAttribute('x2', String(10 + i*20));
+        gx.setAttribute('y2','12');
+        gx.classList.add('graph-grid');
+        svg.appendChild(gx);
+
+        const gy = document.createElementNS(svgNS, 'line');
+        gy.setAttribute('x1','12');
+        gy.setAttribute('y1', String(50 - i*10));
+        gy.setAttribute('x2','95');
+        gy.setAttribute('y2', String(50 - i*10));
+        gy.classList.add('graph-grid');
+        svg.appendChild(gy);
+      }
+
+      const path = document.createElementNS(svgNS, 'path');
+      if (pathType === 'A'){
+        path.setAttribute('d','M 12 46 L 35 40 L 60 32 L 90 20');
+        path.classList.add('graph-path-a');
+      } else {
+        path.setAttribute('d','M 12 44 L 40 44 L 55 42 L 70 34 L 90 18');
+        path.classList.add('graph-path-b');
+      }
+      svg.appendChild(path);
+
+      canvas.appendChild(svg);
+      card.appendChild(canvas);
+      return card;
+    }
+
+    const gA = createGraphCard('График A', 'A');
+    const gB = createGraphCard('График B', 'B');
+
+    row.appendChild(gA);
+    row.appendChild(gB);
+    cv.appendChild(row);
+  }
+
+  function renderRouteCard(cv){
+    const grid = document.createElement('div');
+    grid.className = 'grid';
+
+    const rows = 5, cols = 7;
+    const blocks = new Set(['1-3','2-3','3-3','3-4','3-1']);
+    const path = new Set(['0-0','0-1','0-2','1-2','2-2','2-1','2-0','3-0','4-0']);
+    const start = '0-0';
+    const finish = '4-0';
+
+    for(let r=0;r<rows;r++){
+      for(let c=0;c<cols;c++){
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        const key = `${r}-${c}`;
+        if (blocks.has(key)) cell.classList.add('block');
+        if (path.has(key)) cell.classList.add('path');
+        if (key===start) cell.classList.add('start');
+        if (key===finish) cell.classList.add('finish');
+        grid.appendChild(cell);
+      }
+    }
+    cv.appendChild(grid);
+
+    const hint = document.createElement('div');
+    hint.className = 'muted';
+    hint.style.fontSize = '.78rem';
+    hint.style.marginTop = '6px';
+    hint.textContent = 'Старт — синяя клетка (общежитие), финиш — жёлтая (лаборатория). Двигайтесь по свободным клеткам.';
+    cv.appendChild(hint);
+  }
+
+  function renderBalanceCard(cv){
+    const bar = document.createElement('div');
+    bar.className = 'scale';
+    const barInner = document.createElement('div');
+    barInner.className = 'scale-bar';
+    const fulcrum = document.createElement('div');
+    fulcrum.className = 'scale-fulcrum';
+    barInner.appendChild(fulcrum);
+    bar.appendChild(barInner);
+    cv.appendChild(bar);
+
+    const row = document.createElement('div');
+    row.className = 'shapes-row';
+
+    const left = document.createElement('div');
+    left.className = 'shape-set';
+    left.innerHTML = '<div class="shape tri"></div><div class="shape circle"></div><span>= квадрат</span>';
+
+    const right = document.createElement('div');
+    right.className = 'shape-set';
+    right.innerHTML = '<div class="shape circle"></div><div class="shape circle"></div><span>= треугольник</span>';
+
+    row.appendChild(left);
+    row.appendChild(right);
+    cv.appendChild(row);
+  }
+
+  function renderMatrixCard(cv){
+    const matrix = document.createElement('div');
+    matrix.className = 'matrix';
+    const vals = [
+      '2','4','6',
+      '3','5','7',
+      '4','6','?'
+    ];
+    vals.forEach(v=>{
+      const cell = document.createElement('div');
+      cell.className = 'matrix-cell' + (v==='?' ? ' question' : '');
+      cell.textContent = v;
+      matrix.appendChild(cell);
+    });
+    cv.appendChild(matrix);
+  }
+
+  function handleReveal(m){
+    if (timerId) clearInterval(timerId);
+    $('rnum2').textContent = m.round;
+    $('cat2').textContent = m.category;
+    $('qtext2').textContent = m.prompt;
+
+    const correctEl = $('correct');
+    if (m.qtype === 'mcq'){
+      correctEl.textContent = m.correctText ? `Правильный вариант: ${m.correctText}` : 'Правильный вариант обозначен администратором.';
+    }else{
+      if (m.mode === 'card' && Array.isArray(m.accepted) && m.accepted[0] === '*'){
+        correctEl.textContent = 'Открытый ответ: оценивается по правилам карточки и логике решения.';
+      }else{
+        const acc = m.accepted || [];
+        correctEl.textContent = acc.length
+          ? `Принятые ответы: ${acc.join(', ')}`
+          : 'Ответы проверяются администратором.';
+      }
+    }
+
+    const resUl = $('results');
+    resUl.innerHTML = '';
+    (m.results || []).forEach(r=>{
+      let ans = (r.text || '').trim();
+      if (m.qtype === 'mcq'){
+        const opts = m.options || [];
+        if (r.choice != null && opts[r.choice] != null){
+          ans = opts[r.choice];
+        }else{
+          ans = '—';
+        }
+      }
+      const li = document.createElement('li');
+      li.innerHTML = `<b>${escapeHtml(r.name)}</b>: ${escapeHtml(ans)} — ${r.isCorrect ? 'верно ✅' : 'неверно ❌'} (+${r.awarded})`;
+      resUl.appendChild(li);
+    });
+
+    const scoresUl = $('scores');
+    scoresUl.innerHTML = '';
+    (m.scores || []).forEach(s=>{
+      const li = document.createElement('li');
+      li.innerHTML = `<b>${escapeHtml(s.name)}</b>: ${s.score}`;
+      scoresUl.appendChild(li);
+    });
+
+    const mine = (m.results || []).find(r=>r.playerId === playerId);
+    if (mine){
+      let ans = (mine.text || '').trim();
+      if (m.qtype === 'mcq'){
+        const opts = m.options || [];
+        if (mine.choice != null && opts[mine.choice] != null){
+          ans = opts[mine.choice];
+        }else{
+          ans = '—';
+        }
+      }
+      myHistory.push({
+        round: m.round,
+        category: m.category,
+        prompt: m.prompt,
+        answer: ans,
+        isCorrect: !!mine.isCorrect,
+        awarded: mine.awarded || 0,
+        timeMs: mine.timeMs
+      });
+    }
+
+    show('reveal');
+  }
+
+  function handleFinal(m){
+    if (timerId) clearInterval(timerId);
+    const fs = $('fscores');
+    fs.innerHTML = '';
+    (m.scores || []).sort((a,b)=>(b.score||0)-(a.score||0)).forEach(s=>{
+      const li = document.createElement('li');
+      li.innerHTML = `<b>${escapeHtml(s.name)}</b>: ${s.score}`;
+      fs.appendChild(li);
+    });
+
+    const body = $('myHistoryBody');
+    body.innerHTML = '';
+    myHistory.sort((a,b)=>a.round - b.round).forEach(h=>{
+      const tr = document.createElement('tr');
+
+      const tdRound = document.createElement('td');
+      tdRound.textContent = h.round;
+      tr.appendChild(tdRound);
+
+      const tdCat = document.createElement('td');
+      tdCat.textContent = h.category;
+      tr.appendChild(tdCat);
+
+      const tdPrompt = document.createElement('td');
+      const preview = (h.prompt || '').length > 80
+        ? h.prompt.slice(0,77) + '…'
+        : h.prompt || '';
+      tdPrompt.textContent = preview;
+      tr.appendChild(tdPrompt);
+
+      const tdAns = document.createElement('td');
+      tdAns.textContent = h.answer || '—';
+      tr.appendChild(tdAns);
+
+      const tdStatus = document.createElement('td');
+      tdStatus.textContent = h.isCorrect ? 'верно' : 'неверно';
+      tdStatus.className = h.isCorrect ? 'status-ok' : 'status-bad';
+      tr.appendChild(tdStatus);
+
+      const tdScore = document.createElement('td');
+      tdScore.textContent = `+${h.awarded || 0}`;
+      tr.appendChild(tdScore);
+
+      const tdTime = document.createElement('td');
+      if (h.timeMs != null){
+        const seconds = h.timeMs/1000;
+        tdTime.textContent = seconds.toFixed(1) + ' с';
+      }else{
+        tdTime.textContent = '—';
+      }
+      tr.appendChild(tdTime);
+
+      body.appendChild(tr);
+    });
+
+    show('final');
+  }
+
+  function escapeHtml(s){
+    return String(s)
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;');
+  }
+</script>
+</body>
+</html>

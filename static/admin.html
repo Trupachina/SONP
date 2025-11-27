@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+  <title>СОНП — Администратор</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet"/>
+
+  <style>
+    :root{
+      --bg:#f6f8fb;
+      --card:#ffffff;
+      --text:#101827;
+      --muted:#5c6b86;
+      --accent:#2b74ff;
+      --accent-soft:#eaf0ff;
+      --radius:18px;
+      --shadow:0 14px 36px rgba(15,23,42,.12);
+      --ok:#16a34a;
+      --warn:#f59e0b;
+      --bad:#ef4444;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background:radial-gradient(circle at top,#edf2ff 0,#f6f8fb 40%,#f6f8fb 100%);
+      color:var(--text);
+      padding:20px;
+    }
+    .wrap{
+      max-width:960px;
+      margin:0 auto;
+    }
+    .card{
+      background:var(--card);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:18px 18px 20px;
+      margin:12px 0;
+      border:1px solid rgba(15,23,42,.03);
+    }
+    .top-row{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+    h1{margin:4px 0 2px;font-size:1.9rem;letter-spacing:.02em}
+    h2{margin:0 0 4px}
+    h3{margin:0 0 6px}
+    .muted{color:var(--muted)}
+    label{font-weight:600;font-size:.92rem;margin-right:6px}
+    input[type="text"],input[type="number"]{
+      padding:10px 12px;
+      border-radius:12px;
+      border:1.5px solid #e3e9f5;
+      font-size:14px;
+      outline:none;
+      transition:border-color .15s, box-shadow .15s, background .15s;
+      background:#fdfdff;
+    }
+    input[type="text"]:focus,
+    input[type="number"]:focus{
+      border-color:#c7d6ff;
+      box-shadow:0 0 0 4px #eaf0ff;
+      background:#ffffff;
+    }
+    .btn{
+      appearance:none;
+      border:0;
+      border-radius:12px;
+      padding:10px 14px;
+      background:var(--accent);
+      color:#fff;
+      font-weight:800;
+      cursor:pointer;
+      font-size:.9rem;
+      letter-spacing:.04em;
+      text-transform:uppercase;
+      box-shadow:0 10px 24px rgba(37,99,235,.35);
+      transition:transform .12s, box-shadow .12s, opacity .12s, background .12s;
+      white-space:nowrap;
+    }
+    .btn:hover{
+      transform:translateY(-1px);
+      box-shadow:0 14px 32px rgba(37,99,235,.38);
+    }
+    .btn:active{
+      transform:translateY(1px);
+      box-shadow:0 6px 14px rgba(37,99,235,.25);
+    }
+    .btn:disabled{
+      opacity:.6;
+      cursor:not-allowed;
+      box-shadow:none;
+      transform:none;
+    }
+    .btn.ghost{
+      background:#fff;
+      color:var(--accent);
+      border:2px solid var(--accent);
+      box-shadow:none;
+      text-transform:none;
+      letter-spacing:0;
+    }
+    .btn.danger{
+      background:#fee2e2;
+      color:#b91c1c;
+      border:2px solid #fecaca;
+      box-shadow:none;
+      text-transform:none;
+      letter-spacing:0;
+    }
+    .row{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    .pill{
+      background:#eef2ff;
+      color:#1e3a8a;
+      border-radius:999px;
+      padding:6px 12px;
+      font-weight:800;
+      border:1px solid #c7d2fe;
+      font-size:.85rem;
+      white-space:nowrap;
+    }
+    .pill.mode-card{
+      background:#fef3c7;
+      color:#92400e;
+      border-color:#facc15;
+    }
+    .pill.status-lobby{
+      background:#ecfdf5;
+      color:#166534;
+      border-color:#bbf7d0;
+    }
+    .pill.status-running{
+      background:#eff6ff;
+      color:#1d4ed8;
+      border-color:#bfdbfe;
+    }
+    .pill.status-finished{
+      background:#fef2f2;
+      color:#b91c1c;
+      border-color:#fecaca;
+    }
+    .pill.timer{
+      background:#0f172a;
+      color:#fbbf24;
+      border-color:#111827;
+      font-variant-numeric:tabular-nums;
+      box-shadow:0 0 0 1px rgba(15,23,42,.7), 0 0 18px rgba(251,191,36,.4);
+    }
+    ul{margin:4px 0 0;padding-left:18px}
+    li{margin:1px 0}
+    a.btn-link{
+      text-decoration:none;
+    }
+
+    .brand-mark{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+    }
+    .brand-logo{
+      width:32px;height:32px;border-radius:12px;
+      background:radial-gradient(circle at 25% 0,#f97316 0,#eab308 30%,#0ea5e9 70%,#1d4ed8 100%);
+      box-shadow:0 0 0 2px rgba(255,255,255,.9),0 10px 22px rgba(30,64,175,.55);
+      position:relative;
+      overflow:hidden;
+    }
+    .brand-logo::before{
+      content:'Σ';
+      position:absolute;
+      inset:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight:900;
+      color:#0b1120;
+    }
+
+    .tagline{font-size:.95rem}
+
+    .badge-small{
+      display:inline-flex;
+      align-items:center;
+      gap:4px;
+      padding:2px 6px;
+      border-radius:999px;
+      font-size:.75rem;
+      background:#eff6ff;
+      color:#1d4ed8;
+      border:1px solid #dbeafe;
+    }
+    .badge-small span.dot{
+      width:6px;height:6px;border-radius:999px;background:#22c55e;
+    }
+
+    .section-title{
+      font-size:.95rem;
+      font-weight:600;
+      margin-bottom:4px;
+    }
+
+    .q-preview{
+      margin-top:8px;
+      padding:10px 12px;
+      border-radius:14px;
+      background:#f9fafb;
+      border:1px solid #e5e7eb;
+      font-size:.9rem;
+    }
+    .q-extra{
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+      margin-top:6px;
+      font-size:.8rem;
+      color:var(--muted);
+    }
+
+    .mini-label{
+      font-size:.78rem;
+      text-transform:uppercase;
+      letter-spacing:.12em;
+      color:var(--muted);
+    }
+
+    .toast{
+      position:fixed;
+      left:50%;
+      bottom:16px;
+      transform:translateX(-50%);
+      padding:10px 14px;
+      background:#0f172a;
+      color:#e5e7eb;
+      border-radius:12px;
+      opacity:.98;
+      box-shadow:0 10px 26px rgba(15,23,42,.6);
+      font-size:.88rem;
+      max-width:90%;
+      z-index:20;
+    }
+
+    .table-mini{
+      width:100%;
+      border-collapse:collapse;
+      font-size:.86rem;
+      margin-top:6px;
+    }
+    .table-mini th,
+    .table-mini td{
+      padding:4px 6px;
+      border-bottom:1px solid #e5e7eb;
+      text-align:left;
+    }
+    .table-mini th{
+      font-weight:600;
+      color:var(--muted);
+      font-size:.8rem;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+    }
+    .pill-chip{
+      display:inline-flex;
+      align-items:center;
+      padding:2px 6px;
+      border-radius:999px;
+      font-size:.75rem;
+      background:#eef2ff;
+      color:#3730a3;
+      border:1px solid #e0e7ff;
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="toast" id="toast" style="display:none"></div>
+
+  <!-- HEADER -->
+  <div class="card">
+    <div class="top-row">
+      <div class="brand-mark">
+        <div class="brand-logo"></div>
+        <div>
+          <h1>СОНП</h1>
+          <div class="tagline muted">Система оценки научного потенциала — панель администратора</div>
+        </div>
+      </div>
+      <div class="pill">Режим: Администратор</div>
+    </div>
+    <div style="margin-top:8px;font-size:.9rem" class="muted">
+      Создайте комнату, наблюдайте за ходом выполнения заданий (включая когнитивные карточки) и выгружайте результаты в CSV.
+    </div>
+  </div>
+
+  <!-- ROOM CONTROL -->
+  <div class="card">
+    <div class="section-title">Управление комнатой</div>
+    <div class="row" style="margin-top:6px">
+      <label for="rounds">Раундов:</label>
+      <input id="rounds" type="number" min="1" max="30" value="12" style="width:72px"/>
+      <button class="btn" id="btnCreate">Создать комнату</button>
+
+      <label for="roomInput">Код:</label>
+      <input id="roomInput" type="text" maxlength="4" style="width:90px" placeholder="AB3D"/>
+
+      <button class="btn ghost" id="btnAttach">Подключиться</button>
+      <button class="btn" id="btnStart" style="display:none">Начать сессию</button>
+      <button class="btn danger" id="btnEnd" style="display:none">Завершить сессию</button>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <div class="mini-label">Текущая комната</div>
+      <span class="pill" id="roomBadge" style="display:none">----</span>
+      <span class="pill status-lobby" id="statusBadge" style="display:none">lobby</span>
+      <span class="badge-small" id="playersBadge" style="display:none">
+        <span class="dot"></span> <span id="playersCount">0</span> игроков
+      </span>
+    </div>
+  </div>
+
+  <!-- TASK BANK -->
+  <div class="card">
+    <div class="top-row">
+      <div>
+        <div class="section-title">Банк заданий</div>
+        <div class="muted" style="font-size:.86rem">
+          Поддерживаются базовые задачи и когнитивные карточки. Обновите файл <code>tasks.json</code> и перезагрузите банк.
+        </div>
+      </div>
+      <button class="btn ghost" id="btnReload">Перезагрузить tasks.json</button>
+    </div>
+    <div id="stats" class="muted" style="margin-top:8px;font-size:.9rem">Загрузка…</div>
+  </div>
+
+  <!-- ROOM / PLAYERS -->
+  <div class="card" id="roomBox" style="display:none">
+    <div class="top-row">
+      <div class="section-title">Участники</div>
+      <div class="muted" style="font-size:.85rem">Администратор не участвует в заданиях, только наблюдает.</div>
+    </div>
+    <ul id="playersList"></ul>
+  </div>
+
+  <!-- LIVE QUESTION -->
+  <div class="card" id="live" style="display:none">
+    <div class="top-row">
+      <div class="section-title">Текущее задание</div>
+      <div class="row">
+        <div class="pill timer" id="timer">0:00</div>
+        <div class="pill" id="roundInfo">Раунд 0 / 0</div>
+      </div>
+    </div>
+
+    <div class="q-preview">
+      <div class="mini-label">Категория</div>
+      <div id="cat" style="font-weight:600;margin-top:2px"></div>
+
+      <div class="q-extra">
+        <span id="modePill" class="pill mode-card" style="display:none">Когнитивная карточка</span>
+        <span id="subtypeLabel" class="muted" style="display:none"></span>
+      </div>
+
+      <div class="mini-label" style="margin-top:8px">Текст задания</div>
+      <div id="prompt" style="margin-top:4px;font-weight:800;font-size:.95rem"></div>
+    </div>
+  </div>
+
+  <!-- LAST REVEAL -->
+  <div class="card" id="reveal" style="display:none">
+    <div class="section-title">Итоги последнего раунда</div>
+    <div class="muted" id="revealTitle" style="font-size:.9rem;margin-bottom:6px"></div>
+    <table class="table-mini" id="tableResults">
+      <thead>
+        <tr>
+          <th>Игрок</th>
+          <th>Ответ</th>
+          <th>Верно</th>
+          <th>+балл</th>
+          <th>Время, мс</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <div class="mini-label" style="margin-top:8px">Текущие очки</div>
+    <ul id="scoreList" style="margin-top:4px"></ul>
+  </div>
+
+  <!-- EXPORT -->
+  <div class="card" id="export" style="display:none">
+    <div class="section-title">Экспорт результатов</div>
+    <div class="muted" style="font-size:.9rem;margin-bottom:6px">
+      После завершения сессии вы можете выгрузить CSV по комнате и по отдельным игрокам.
+    </div>
+    <div class="row" style="margin-bottom:10px">
+      <a id="dlRoom" class="btn-link">
+        <button class="btn ghost" type="button">Итоги комнаты (CSV)</button>
+      </a>
+      <div class="muted" style="font-size:.85rem">
+        Файл содержит список игроков и их итоговые баллы.
+      </div>
+    </div>
+    <div class="row">
+      <label for="playerExport">ID игрока:</label>
+      <input id="playerExport" type="text" placeholder="p_xxxxxxxx" style="width:140px"/>
+      <a id="dlPlayer" class="btn-link">
+        <button class="btn ghost" type="button">Экспорт по игроку</button>
+      </a>
+    </div>
+  </div>
+</div>
+
+<script>
+  const $ = id => document.getElementById(id);
+  const host = location.host || '127.0.0.1:8000';
+
+  let ws = null;
+  let roomCode = null;
+  let deadline = 0;
+  let tId = null;
+  let currentStatus = 'lobby';
+
+  const toastEl = $('toast');
+  function toast(msg){
+    toastEl.textContent = msg;
+    toastEl.style.display = 'block';
+    setTimeout(()=>{ toastEl.style.display='none'; }, 1800);
+  }
+
+  function escapeHtml(s){
+    return String(s)
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;');
+  }
+
+  function setStatus(status){
+    currentStatus = status;
+    const el = $('statusBadge');
+    el.style.display = 'inline-flex';
+    el.textContent = status;
+    el.classList.remove('status-lobby','status-running','status-finished');
+    if (status === 'running') el.classList.add('status-running');
+    else if (status === 'finished') el.classList.add('status-finished');
+    else el.classList.add('status-lobby');
+  }
+
+  function updatePlayers(players){
+    const list = $('playersList');
+    list.innerHTML = '';
+    (players || []).forEach(p=>{
+      const li = document.createElement('li');
+      li.innerHTML = `${escapeHtml(p.name)} — <b>${p.score || 0}</b>`;
+      list.appendChild(li);
+    });
+
+    const count = (players || []).length;
+    $('playersBadge').style.display = 'inline-flex';
+    $('playersCount').textContent = count;
+    $('roomBox').style.display = count ? 'block' : 'none';
+  }
+
+  function tick(){
+    const left = Math.max(0, Math.floor(deadline - Date.now()/1000));
+    $('timer').textContent = `${Math.floor(left/60)}:${String(left%60).padStart(2,'0')}`;
+    if (left<=0) clearInterval(tId);
+  }
+
+  async function loadStats(){
+    try{
+      const data = await fetch('/api/tasks').then(r=>r.json());
+      const lines = [`Всего задач: ${data.total}`];
+      for(const [k,v] of Object.entries(data.categories||{})){
+        lines.push(`${k}: ${v}`);
+      }
+      $('stats').textContent = lines.join('  •  ');
+    }catch(e){
+      $('stats').textContent = 'Не удалось получить статистику задач.';
+    }
+  }
+  $('btnReload').onclick = async ()=>{
+    try{
+      await fetch('/api/tasks/reload',{method:'POST'});
+    }catch(e){}
+    loadStats();
+  };
+  loadStats();
+
+  $('roomInput').addEventListener('input', e=>{
+    e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,4);
+  });
+
+  function ensureWs(onOpen){
+    if (ws && ws.readyState === WebSocket.OPEN){
+      onOpen();
+      return;
+    }
+    if (ws && ws.readyState !== WebSocket.CLOSED && ws.readyState !== WebSocket.CLOSING){
+      ws.close();
+    }
+    ws = new WebSocket(`ws://${host}/ws`);
+    ws.onopen = onOpen;
+    ws.onmessage = onMessage;
+    ws.onerror = ()=> toast('Ошибка соединения с сервером');
+    ws.onclose = ()=>{};
+  }
+
+  $('btnCreate').onclick = ()=>{
+    const rounds = Math.max(1, Math.min(30, parseInt($('rounds').value||'12',10)));
+    ensureWs(()=>{
+      ws.send(JSON.stringify({ type:'admin_create_room', rounds }));
+    });
+  };
+
+  $('btnAttach').onclick = ()=>{
+    const code = ($('roomInput').value || roomCode || '').trim().toUpperCase();
+    if (!code || code.length !== 4){
+      toast('Введите код комнаты (4 символа).');
+      return;
+    }
+    ensureWs(()=>{
+      ws.send(JSON.stringify({ type:'admin_attach', roomCode: code }));
+    });
+  };
+
+  $('btnStart').onclick = ()=>{
+    if (!roomCode){ toast('Комната не выбрана'); return; }
+    if (!ws) return;
+    ws.send(JSON.stringify({ type:'admin_start', roomCode }));
+  };
+
+  $('btnEnd').onclick = ()=>{
+    if (!roomCode){ toast('Комната не выбрана'); return; }
+    if (!ws) return;
+    ws.send(JSON.stringify({ type:'admin_end', roomCode }));
+  };
+
+  $('dlRoom').onclick = (e)=>{
+    if (!roomCode){
+      e.preventDefault();
+      toast('Сначала создайте или подключитесь к комнате.');
+      return;
+    }
+    $('dlRoom').href = `/api/export/${roomCode}/room.csv`;
+  };
+
+  $('dlPlayer').onclick = (e)=>{
+    const pid = $('playerExport').value.trim();
+    if (!roomCode || !pid){
+      e.preventDefault();
+      toast('Укажите код комнаты и ID игрока.');
+      return;
+    }
+    $('dlPlayer').href = `/api/export/${roomCode}/player/${encodeURIComponent(pid)}.csv`;
+  };
+
+  function onMessage(ev){
+    const m = JSON.parse(ev.data);
+
+    if (m.type === 'error'){
+      toast(m.message || 'Ошибка');
+      return;
+    }
+
+    if (m.type === 'room_created'){
+      roomCode = m.roomCode;
+      $('roomInput').value = roomCode;
+      $('roomBadge').style.display = 'inline-flex';
+      $('roomBadge').textContent = roomCode;
+      setStatus('lobby');
+      $('btnStart').style.display = 'inline-flex';
+      $('btnEnd').style.display = 'inline-flex';
+      toast(`Комната создана: ${roomCode}`);
+      return;
+    }
+
+    if (m.type === 'room_attached'){
+      roomCode = m.roomCode;
+      $('roomInput').value = roomCode;
+      $('roomBadge').style.display = 'inline-flex';
+      $('roomBadge').textContent = roomCode;
+      setStatus(m.status || 'lobby');
+      updatePlayers(m.players || []);
+      $('btnStart').style.display = 'inline-flex';
+      $('btnEnd').style.display = 'inline-flex';
+      toast(`Подключено к комнате ${roomCode}`);
+      return;
+    }
+
+    if (m.type === 'players'){
+      updatePlayers(m.players || []);
+      return;
+    }
+
+    if (m.type === 'game_started'){
+      setStatus('running');
+      $('live').style.display = 'block';
+      $('reveal').style.display = 'none';
+      $('export').style.display = 'none';
+      toast('Сессия началась');
+      return;
+    }
+
+    if (m.type === 'question'){
+      $('live').style.display = 'block';
+      $('reveal').style.display = 'none';
+
+      $('cat').textContent = m.category || '';
+      $('prompt').textContent = m.prompt || '';
+      $('roundInfo').textContent = `Раунд ${m.round} / ${m.totalRounds}`;
+
+      const mode = m.mode || 'base';
+      const subtype = m.subtype || null;
+
+      const mp = $('modePill');
+      const sl = $('subtypeLabel');
+
+      if (mode === 'card'){
+        mp.style.display = 'inline-flex';
+        let subtypeText = '';
+        switch(subtype){
+          case 'fish_odd_one_out': subtypeText = 'Числовая закономерность (рыбки)'; break;
+          case 'planets_select': subtypeText = 'Логический отбор (планеты)'; break;
+          case 'clock_equal_sums': subtypeText = 'Равные суммы на циферблате'; break;
+          case 'word_ladder_lisa_nora': subtypeText = 'Лестница слов ЛИСА → НОРА'; break;
+          case 'robot_pair_to_target': subtypeText = 'Робот-калькулятор (подбор пары)'; break;
+          case 'cube_nets_select': subtypeText = 'Развёртки куба'; break;
+          case 'graph_match_trend': subtypeText = 'Сопоставление графиков и тренда'; break;
+          case 'route_min_steps': subtypeText = 'Маршрут по сетке'; break;
+          case 'balance_relations': subtypeText = 'Отношения масс фигур'; break;
+          case 'pattern_matrix': subtypeText = 'Матрица закономерностей'; break;
+          default: subtypeText = 'Когнитивная карточка';
+        }
+        sl.style.display = 'inline';
+        sl.textContent = subtypeText;
+      }else{
+        mp.style.display = 'none';
+        sl.style.display = 'none';
+      }
+
+      const tl = m.timeLimit || 45;
+      deadline = Date.now()/1000 + tl;
+      clearInterval(tId);
+      tId = setInterval(tick, 250);
+      tick();
+      return;
+    }
+
+    if (m.type === 'reveal'){
+      $('reveal').style.display = 'block';
+
+      const mode = m.mode || 'base';
+      const title = [];
+      title.push(`Раунд ${m.round}. Категория: ${m.category || ''}`);
+      if (mode === 'card'){
+        title.push('Тип: когнитивная карточка');
+      }
+      $('revealTitle').textContent = title.join(' · ');
+
+      const tbody = $('tableResults').querySelector('tbody');
+      tbody.innerHTML = '';
+      (m.results || []).forEach(r=>{
+        const tr = document.createElement('tr');
+        const name = escapeHtml(r.name || '');
+        let ans = (r.text || '').trim();
+        if (m.qtype === 'mcq'){
+          const opts = m.options || [];
+          if (r.choice != null && opts[r.choice] != null){
+            ans = opts[r.choice];
+          }else ans = '—';
+        }
+        const isCorrect = r.isCorrect ? 'Да' : 'Нет';
+        const awarded = r.awarded || 0;
+        const time = r.timeMs != null ? r.timeMs : '';
+
+        tr.innerHTML = `<td>${name}</td>
+                        <td>${escapeHtml(ans)}</td>
+                        <td>${isCorrect}</td>
+                        <td>${awarded}</td>
+                        <td>${time}</td>`;
+        tbody.appendChild(tr);
+      });
+
+      const scoreList = $('scoreList');
+      scoreList.innerHTML = '';
+      (m.scores || []).forEach(s=>{
+        const li = document.createElement('li');
+        li.innerHTML = `<span class="pill-chip">${escapeHtml(s.name || '')}</span> — ${s.score || 0}`;
+        scoreList.appendChild(li);
+      });
+
+      return;
+    }
+
+    if (m.type === 'final'){
+      setStatus('finished');
+      $('export').style.display = 'block';
+      $('live').style.display = 'none';
+      toast('Сессия завершена');
+      if (roomCode){
+        $('dlRoom').href = `/api/export/${roomCode}/room.csv`;
+      }
+      return;
+    }
+  }
+</script>
+</body>
+</html>
