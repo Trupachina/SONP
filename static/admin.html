@@ -339,6 +339,28 @@
       <button class="btn ghost" id="btnReload">Перезагрузить tasks.json</button>
     </div>
     <div id="stats" class="muted" style="margin-top:8px;font-size:.9rem">Загрузка…</div>
+
+    <!-- БЛОК ФИЛЬТРА ЗАДАНИЙ -->
+    <div style="margin-top:10px;font-size:.85rem">
+      <div class="mini-label">Фильтр заданий по типу</div>
+      <div class="row" style="margin-top:6px">
+        <label>
+          <input type="radio" name="taskMode" id="filterAll" checked/>
+          Все задания
+        </label>
+        <label>
+          <input type="radio" name="taskMode" id="filterCardsOnly"/>
+          Только когнитивные карточки
+        </label>
+        <label>
+          <input type="radio" name="taskMode" id="filterNoCards"/>
+          Без когнитивных карточек
+        </label>
+      </div>
+      <div class="muted" style="margin-top:4px;font-size:.78rem">
+        Параметр фильтра передается на сервер при создании комнаты и влияет на выбор задач в раундах.
+      </div>
+    </div>
   </div>
 
   <!-- ROOM / PLAYERS -->
@@ -428,6 +450,9 @@
   let tId = null;
   let currentStatus = 'lobby';
 
+  // Режим фильтра задач: all | cards_only | no_cards
+  let taskFilterMode = 'all';
+
   const toastEl = $('toast');
   function toast(msg){
     toastEl.textContent = msg;
@@ -458,7 +483,7 @@
     list.innerHTML = '';
     (players || []).forEach(p=>{
       const li = document.createElement('li');
-      li.innerHTML = `${escapeHtml(p.name)} — <b>${p.score || 0}</b>`;
+      li.innerHTML = escapeHtml(p.name) + ' — <b>' + (p.score || 0) + '</b>';
       list.appendChild(li);
     });
 
@@ -470,18 +495,18 @@
 
   function tick(){
     const left = Math.max(0, Math.floor(deadline - Date.now()/1000));
-    $('timer').textContent = `${Math.floor(left/60)}:${String(left%60).padStart(2,'0')}`;
+    $('timer').textContent = String(Math.floor(left/60)) + ':' + String(left%60).padStart(2,'0');
     if (left<=0) clearInterval(tId);
   }
 
   async function loadStats(){
     try{
       const data = await fetch('/api/tasks').then(r=>r.json());
-      const lines = [`Всего задач: ${data.total}`];
+      const lines = ['Всего задач: ' + data.total];
       for(const [k,v] of Object.entries(data.categories||{})){
-        lines.push(`${k}: ${v}`);
+        lines.push(k + ': ' + v);
       }
-      $('stats').textContent = lines.join('  •  ');
+      $('stats').textContent = lines.join('  |  ');
     }catch(e){
       $('stats').textContent = 'Не удалось получить статистику задач.';
     }
@@ -493,6 +518,29 @@
     loadStats();
   };
   loadStats();
+
+  // Переключатель режима фильтра задач
+  const filterAll = $('filterAll');
+  const filterCardsOnly = $('filterCardsOnly');
+  const filterNoCards = $('filterNoCards');
+
+  if (filterAll && filterCardsOnly && filterNoCards){
+    filterAll.addEventListener('change', ()=>{
+      if (filterAll.checked){
+        taskFilterMode = 'all';
+      }
+    });
+    filterCardsOnly.addEventListener('change', ()=>{
+      if (filterCardsOnly.checked){
+        taskFilterMode = 'cards_only';
+      }
+    });
+    filterNoCards.addEventListener('change', ()=>{
+      if (filterNoCards.checked){
+        taskFilterMode = 'no_cards';
+      }
+    });
+  }
 
   $('roomInput').addEventListener('input', e=>{
     e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,4);
@@ -506,7 +554,7 @@
     if (ws && ws.readyState !== WebSocket.CLOSED && ws.readyState !== WebSocket.CLOSING){
       ws.close();
     }
-    ws = new WebSocket(`ws://${host}/ws`);
+    ws = new WebSocket('ws://' + host + '/ws');
     ws.onopen = onOpen;
     ws.onmessage = onMessage;
     ws.onerror = ()=> toast('Ошибка соединения с сервером');
@@ -516,7 +564,11 @@
   $('btnCreate').onclick = ()=>{
     const rounds = Math.max(1, Math.min(30, parseInt($('rounds').value||'12',10)));
     ensureWs(()=>{
-      ws.send(JSON.stringify({ type:'admin_create_room', rounds }));
+      ws.send(JSON.stringify({
+        type:'admin_create_room',
+        rounds: rounds,
+        taskFilterMode: taskFilterMode
+      }));
     });
   };
 
@@ -532,15 +584,21 @@
   };
 
   $('btnStart').onclick = ()=>{
-    if (!roomCode){ toast('Комната не выбрана'); return; }
+    if (!roomCode){
+      toast('Комната не выбрана');
+      return;
+    }
     if (!ws) return;
-    ws.send(JSON.stringify({ type:'admin_start', roomCode }));
+    ws.send(JSON.stringify({ type:'admin_start', roomCode: roomCode }));
   };
 
   $('btnEnd').onclick = ()=>{
-    if (!roomCode){ toast('Комната не выбрана'); return; }
+    if (!roomCode){
+      toast('Комната не выбрана');
+      return;
+    }
     if (!ws) return;
-    ws.send(JSON.stringify({ type:'admin_end', roomCode }));
+    ws.send(JSON.stringify({ type:'admin_end', roomCode: roomCode }));
   };
 
   $('dlRoom').onclick = (e)=>{
@@ -549,7 +607,7 @@
       toast('Сначала создайте или подключитесь к комнате.');
       return;
     }
-    $('dlRoom').href = `/api/export/${roomCode}/room.csv`;
+    $('dlRoom').href = '/api/export/' + roomCode + '/room.csv';
   };
 
   $('dlPlayer').onclick = (e)=>{
@@ -559,8 +617,26 @@
       toast('Укажите код комнаты и ID игрока.');
       return;
     }
-    $('dlPlayer').href = `/api/export/${roomCode}/player/${encodeURIComponent(pid)}.csv`;
+    $('dlPlayer').href = '/api/export/' + roomCode + '/player/' + encodeURIComponent(pid) + '.csv';
   };
+
+  function applyTaskFilterFromRoom(mode){
+    if (!mode){
+      taskFilterMode = 'all';
+      if (filterAll) filterAll.checked = true;
+      return;
+    }
+    taskFilterMode = mode;
+    if (filterAll && filterCardsOnly && filterNoCards){
+      if (mode === 'cards_only'){
+        filterCardsOnly.checked = true;
+      }else if (mode === 'no_cards'){
+        filterNoCards.checked = true;
+      }else{
+        filterAll.checked = true;
+      }
+    }
+  }
 
   function onMessage(ev){
     const m = JSON.parse(ev.data);
@@ -578,7 +654,15 @@
       setStatus('lobby');
       $('btnStart').style.display = 'inline-flex';
       $('btnEnd').style.display = 'inline-flex';
-      toast(`Комната создана: ${roomCode}`);
+
+      // Если сервер вернул режим фильтра, применяем его
+      if (typeof m.taskFilterMode === 'string'){
+        applyTaskFilterFromRoom(m.taskFilterMode);
+      }else{
+        applyTaskFilterFromRoom(taskFilterMode);
+      }
+
+      toast('Комната создана: ' + roomCode);
       return;
     }
 
@@ -591,7 +675,12 @@
       updatePlayers(m.players || []);
       $('btnStart').style.display = 'inline-flex';
       $('btnEnd').style.display = 'inline-flex';
-      toast(`Подключено к комнате ${roomCode}`);
+
+      if (typeof m.taskFilterMode === 'string'){
+        applyTaskFilterFromRoom(m.taskFilterMode);
+      }
+
+      toast('Подключено к комнате ' + roomCode);
       return;
     }
 
@@ -615,7 +704,7 @@
 
       $('cat').textContent = m.category || '';
       $('prompt').textContent = m.prompt || '';
-      $('roundInfo').textContent = `Раунд ${m.round} / ${m.totalRounds}`;
+      $('roundInfo').textContent = 'Раунд ' + m.round + ' / ' + m.totalRounds;
 
       const mode = m.mode || 'base';
       const subtype = m.subtype || null;
@@ -658,12 +747,12 @@
       $('reveal').style.display = 'block';
 
       const mode = m.mode || 'base';
-      const title = [];
-      title.push(`Раунд ${m.round}. Категория: ${m.category || ''}`);
+      const titleParts = [];
+      titleParts.push('Раунд ' + m.round + '. Категория: ' + (m.category || ''));
       if (mode === 'card'){
-        title.push('Тип: когнитивная карточка');
+        titleParts.push('Тип: когнитивная карточка');
       }
-      $('revealTitle').textContent = title.join(' · ');
+      $('revealTitle').textContent = titleParts.join(' · ');
 
       const tbody = $('tableResults').querySelector('tbody');
       tbody.innerHTML = '';
@@ -681,11 +770,12 @@
         const awarded = r.awarded || 0;
         const time = r.timeMs != null ? r.timeMs : '';
 
-        tr.innerHTML = `<td>${name}</td>
-                        <td>${escapeHtml(ans)}</td>
-                        <td>${isCorrect}</td>
-                        <td>${awarded}</td>
-                        <td>${time}</td>`;
+        tr.innerHTML =
+          '<td>' + name + '</td>' +
+          '<td>' + escapeHtml(ans) + '</td>' +
+          '<td>' + isCorrect + '</td>' +
+          '<td>' + awarded + '</td>' +
+          '<td>' + time + '</td>';
         tbody.appendChild(tr);
       });
 
@@ -693,7 +783,7 @@
       scoreList.innerHTML = '';
       (m.scores || []).forEach(s=>{
         const li = document.createElement('li');
-        li.innerHTML = `<span class="pill-chip">${escapeHtml(s.name || '')}</span> — ${s.score || 0}`;
+        li.innerHTML = '<span class="pill-chip">' + escapeHtml(s.name || '') + '</span> — ' + (s.score || 0);
         scoreList.appendChild(li);
       });
 
@@ -706,7 +796,7 @@
       $('live').style.display = 'none';
       toast('Сессия завершена');
       if (roomCode){
-        $('dlRoom').href = `/api/export/${roomCode}/room.csv`;
+        $('dlRoom').href = '/api/export/' + roomCode + '/room.csv';
       }
       return;
     }

@@ -27,14 +27,13 @@ os.makedirs(STATIC_DIR, exist_ok=True)
 # ====================== DB ======================
 def _has_column(cur: sqlite3.Cursor, table: str, column: str) -> bool:
     cur.execute(f"PRAGMA table_info('{table}')")
-    cols = {row[1] for row in cur.fetchall()}  # row[1] = name
+    cols = {row[1] for row in cur.fetchall()}
     return column in cols
 
 def db_init():
     con = sqlite3.connect(DB_PATH)
     cur = con.cursor()
 
-    # Базовые таблицы (если нет)
     cur.execute("""
     CREATE TABLE IF NOT EXISTS rooms(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -66,20 +65,15 @@ def db_init():
         time_spent_ms INTEGER
     )""")
 
-    # --------- АВТОМИГРАЦИИ ---------
-    # players.score
     if not _has_column(cur, "players", "score"):
         cur.execute("ALTER TABLE players ADD COLUMN score INTEGER DEFAULT 0")
 
-    # rooms.status
     if not _has_column(cur, "rooms", "status"):
         cur.execute("ALTER TABLE rooms ADD COLUMN status TEXT")
 
-    # answers.answer_choice
     if not _has_column(cur, "answers", "answer_choice"):
         cur.execute("ALTER TABLE answers ADD COLUMN answer_choice INTEGER")
 
-    # answers.time_spent_ms
     if not _has_column(cur, "answers", "time_spent_ms"):
         cur.execute("ALTER TABLE answers ADD COLUMN time_spent_ms INTEGER")
 
@@ -159,32 +153,6 @@ def db_room_results(room_code: str):
     return {"roomCode": room_code, "rounds": rounds, "status": status, "players": players, "answers": answers}
 
 # ====================== TASKS ======================
-"""
-Поддерживаем два формата:
-
-A) Старый (простой):
-{
-  "Math":[ { "id":"m1","prompt":"...","answers":["...","..."] }, ... ],
-  "Logic":[ ... ]
-}
-
-B) Новый (ваш, mcq/text + метаданные):
-{
-  "Математика":[
-     { "type":"mcq", "title":"...", "options":[...], "correctIndex":2,
-       "mode":"base", "difficulty":1, "timeRef":40, "tags":["..."] },
-     { "type":"text","title":"...", "accept":["...","..."], "mode":"card", "subtype":"..." }
-  ],
-  ...
-}
-
-Внутри сервера храним унифицированно:
-{
-  id, category, type, prompt,
-  options?, correctIndex?, accept?,
-  mode?, subtype?, difficulty?, timeRef?, tags?
-}
-"""
 def _normalize_answer(s: str) -> str:
     s = (s or "").strip()
     s = s.replace(",", ".")
@@ -198,20 +166,13 @@ def _is_correct_text(user_text: str, accepted: List[str]) -> bool:
     for a in accepted or []:
         if _normalize_answer(a) == u:
             return True
-    # попытка числового сравнения
     try:
         au = _normalize_answer(accepted[0])
         return float(u) == float(au)
     except Exception:
         return False
 
-# ---- спец-проверки для некоторых карточек ----
 def _check_robot_pair_to_target(ans_text: str) -> bool:
-    """
-    CARD_ROBOT_1: робот считает a*b - 5, результат должен быть 72.
-    Принимаем любые целые положительные a,b, удовлетворяющие этому условию.
-    Формат ответа: "a,b" или "a b" и т.п.
-    """
     if not ans_text:
         return False
     nums = re.findall(r"-?\d+", ans_text)
@@ -227,13 +188,6 @@ def _check_robot_pair_to_target(ans_text: str) -> bool:
     return (a * b - 5) == 72
 
 def _check_word_ladder_lisa_nora(ans_text: str) -> bool:
-    """
-    CARD_WORD_LADDER_1: открытое задание.
-    Сейчас проверяем только базовую структуру:
-    - ответ не пустой,
-    - в цепочке явно встречаются ЛИСА и НОРА (независимо от регистра),
-    - остальное сохраняем в БД для последующего качественного анализа.
-    """
     if not ans_text:
         return False
     s = ans_text.strip()
@@ -242,8 +196,6 @@ def _check_word_ladder_lisa_nora(ans_text: str) -> bool:
     u = s.upper()
     if "ЛИСА" not in u or "НОРА" not in u:
         return False
-    # Можно добавить более строгую проверку по количеству шагов и разделителям,
-    # но словарь существующих слов в онлайне мы не используем.
     return True
 
 def load_tasks_raw() -> dict:
@@ -269,7 +221,6 @@ def transform_tasks(raw: dict) -> Dict[str, List[dict]]:
             if not isinstance(q, dict):
                 continue
 
-            # Новый формат
             if "type" in q and "title" in q:
                 qtype = q.get("type")
                 if qtype not in ("mcq", "text"):
@@ -282,7 +233,6 @@ def transform_tasks(raw: dict) -> Dict[str, List[dict]]:
                 }
                 id_counter += 1
 
-                # Метаданные
                 item["mode"] = q.get("mode", "base")
                 if "subtype" in q:
                     item["subtype"] = q["subtype"]
@@ -301,12 +251,10 @@ def transform_tasks(raw: dict) -> Dict[str, List[dict]]:
                     item["correctIndex"] = int(q.get("correctIndex"))
                 else:
                     acc = q.get("accept") or []
-                    # Для некоторых карточек accept = ["*"], мы будем проверять отдельно по subtype.
                     item["accept"] = [str(x) for x in acc]
                 out_list.append(item)
                 continue
 
-            # Старый формат (обратная совместимость)
             if "prompt" in q and "answers" in q:
                 item = {
                     "id": q.get("id") or f"q{id_counter}",
@@ -343,33 +291,45 @@ def _all_tasks():
         for q in TASK_BANK.get(cat, []):
             yield q
 
-def pick_question(used_ids: set, desired_mode: Optional[str] = None) -> dict:
+def _allowed_by_filter(q: dict, task_filter_mode: str) -> bool:
+    mode = q.get("mode", "base")
+    if task_filter_mode == "cards_only":
+        return mode == "card"
+    if task_filter_mode == "no_cards":
+        return mode != "card"
+    return True
+
+def pick_question(used_ids: set,
+                  desired_mode: Optional[str] = None,
+                  task_filter_mode: str = "all") -> dict:
     """
-    Выбор вопроса с учётом уже использованных id и желаемого режима (base/card).
-    Если по desired_mode задач нет, делаем фолбэк на любой mode.
+    Выбор вопроса с учётом уже использованных id,
+    желаемого режима (base/card) и глобального фильтра task_filter_mode.
     """
-    # Сначала пробуем с учётом desired_mode
     candidates: List[dict] = []
+
     for cat in CATEGORIES:
         for q in TASK_BANK.get(cat, []):
             if q["id"] in used_ids:
+                continue
+            if not _allowed_by_filter(q, task_filter_mode):
                 continue
             if desired_mode and q.get("mode", "base") != desired_mode:
                 continue
             candidates.append(q)
 
-    # Если не нашли и был задан desired_mode — пробуем без фильтра по mode
-    if not candidates and desired_mode:
+    if not candidates and desired_mode is not None:
         for cat in CATEGORIES:
             for q in TASK_BANK.get(cat, []):
                 if q["id"] in used_ids:
+                    continue
+                if not _allowed_by_filter(q, task_filter_mode):
                     continue
                 candidates.append(q)
 
     if candidates:
         return random.choice(candidates)
 
-    # если совсем пусто — вернём заглушку
     if not CATEGORIES:
         return {
             "id": "none",
@@ -405,13 +365,14 @@ class Room:
     rounds: int = 6
     admin: Optional[WebSocket] = None
     players: Dict[str, PlayerConn] = field(default_factory=dict)
-    status: str = "lobby"   # lobby|running|finished
+    status: str = "lobby"
     current_round: int = 0
     current_question: Optional[dict] = None
     used_ids: set = field(default_factory=set)
     round_deadline: float = 0.0
     time_limit: int = 0
     timer_task: Optional[asyncio.Task] = None
+    task_filter_mode: str = "all"   # all | cards_only | no_cards
 
     def snapshot_players(self):
         return [{"playerId": p.id, "name": p.name, "score": p.score} for p in self.players.values()]
@@ -518,12 +479,21 @@ async def ws_endpoint(ws: WebSocket):
                 code = (msg.get("preferredCode") or gen_code()).upper()
                 if code in ROOMS:
                     code = gen_code()
-                room = Room(code=code, rounds=int(msg.get("rounds", 6)))
+
+                tfm = msg.get("taskFilterMode", "all")
+                if tfm not in ("all", "cards_only", "no_cards"):
+                    tfm = "all"
+
+                room = Room(code=code, rounds=int(msg.get("rounds", 6)), task_filter_mode=tfm)
                 ROOMS[code] = room
                 room.admin = ws
                 CLIENT_TO_ROOM[ws] = code
                 db_room_upsert(code, room.rounds, "lobby")
-                await ws.send_json({"type": "room_created", "roomCode": code})
+                await ws.send_json({
+                    "type": "room_created",
+                    "roomCode": code,
+                    "taskFilterMode": room.task_filter_mode
+                })
                 continue
 
             if t == "admin_attach":
@@ -538,7 +508,8 @@ async def ws_endpoint(ws: WebSocket):
                     "type": "room_attached",
                     "roomCode": code,
                     "players": room.snapshot_players(),
-                    "status": room.status
+                    "status": room.status,
+                    "taskFilterMode": room.task_filter_mode
                 })
                 continue
 
@@ -648,22 +619,29 @@ async def ws_endpoint(ws: WebSocket):
 async def run_rounds(room: Room):
     room.used_ids = set()
 
-    # Проверим, есть ли вообще карточки
-    has_card = any(q.get("mode", "base") == "card" for q in _all_tasks())
+    tfm = room.task_filter_mode or "all"
+
+    has_card = any(
+        q.get("mode", "base") == "card" and _allowed_by_filter(q, tfm)
+        for q in _all_tasks()
+    )
 
     for r in range(1, room.rounds + 1):
         if room.status != "running":
             break
         room.current_round = r
 
-        # Простая схема: каждый 3-й раунд — карточка, если они есть
-        desired_mode = None
-        if has_card and r % 3 == 0:
+        if tfm == "cards_only":
             desired_mode = "card"
-        else:
+        elif tfm == "no_cards":
             desired_mode = "base"
+        else:
+            if has_card and r % 3 == 0:
+                desired_mode = "card"
+            else:
+                desired_mode = "base"
 
-        q = pick_question(room.used_ids, desired_mode=desired_mode)
+        q = pick_question(room.used_ids, desired_mode=desired_mode, task_filter_mode=tfm)
         room.used_ids.add(q["id"])
         room.current_question = q
 
@@ -673,7 +651,6 @@ async def run_rounds(room: Room):
             p.ans_choice = None
             p.ans_time_ms = 0
 
-        # Время: берём timeRef из вопроса, если есть, иначе как раньше
         tl = int(q.get("timeRef") or random.randint(40, 60))
         room.time_limit = tl
         room.round_deadline = time.time() + tl
@@ -721,13 +698,11 @@ async def finish_round(room: Room):
     results = []
 
     for p in room.players.values():
-        # Определяем правильность ответа
         if mode == "card" and subtype == "robot_pair_to_target":
             ok = _check_robot_pair_to_target(p.ans_text)
         elif mode == "card" and subtype == "word_ladder_lisa_nora":
             ok = _check_word_ladder_lisa_nora(p.ans_text)
         else:
-            # стандартная логика
             if q["type"] == "mcq":
                 ok = (p.ans_choice is not None) and (int(p.ans_choice) == int(q.get("correctIndex", -1)))
             else:
@@ -794,17 +769,16 @@ async def safe_broadcast(room_code: str, payload: dict):
     if room.admin:
         try:
             await room.admin.send_json(payload)
-        except:
+        except Exception:
             dead.append(room.admin)
     for pc in list(room.players.values()):
         try:
             await pc.ws.send_json(payload)
-        except:
+        except Exception:
             dead.append(pc.ws)
     for ws in dead:
         CLIENT_TO_ROOM.pop(ws, None)
 
-# -------- health -------
 @app.get("/healthz")
 def health():
     return {"ok": True}
