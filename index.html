@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
-  <title>СОНП — Участник</title>
+  <title>EMOPOT — Участник</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet"/>
@@ -46,7 +46,7 @@
       border:1px solid rgba(15,23,42,.03);
     }
     h1{margin:4px 0 2px;font-size:1.9rem;letter-spacing:.02em}
-    h2{margin:0 0 4px}
+    h2{margin:0 0 2px}
     h3{margin:0 0 6px}
     .muted{color:var(--muted)}
     label{display:block;margin:10px 0 6px;font-weight:600;font-size:.95rem}
@@ -617,7 +617,7 @@
       margin-top:6px;
     }
 
-    /* ROBOT — вертикальная карточка как в референсе */
+    /* ROBOT */
     .card-visual--robot_pair_to_target{
       background:radial-gradient(circle at -10% -10%,#22c55e 0,#0f172a 55%,#020617 100%);
     }
@@ -791,7 +791,7 @@
       opacity:.9;
     }
 
-    /* CUBE NETS — статичный куб с ракурсом */
+    /* CUBE NETS */
     .card-visual--cube_nets_select{
       background:linear-gradient(135deg,#22c55e,#4f46e5,#0f172a);
     }
@@ -1090,7 +1090,7 @@
       border-color:rgba(248,113,113,.8);
     }
 
-    /* SHAPES EQUATION (новая карточка по референсу с фруктами) */
+    /* SHAPES EQUATION */
     .card-visual--shapes_equation{
       background:radial-gradient(circle at -10% -10%,#f97316 0,#b91c1c 40%,#0f172a 100%);
       min-height:260px;
@@ -1303,8 +1303,8 @@
           <div class="brand-mark">
             <div class="brand-logo"></div>
             <div>
-              <h1>СОНП</h1>
-              <div class="muted">Система оценки научного потенциала</div>
+              <h1>EMOPOT</h1>
+              <div class="muted" style="font-size:.9rem">Тест комплексной оценки потенциала абитуриента</div>
             </div>
           </div>
         </div>
@@ -1314,8 +1314,11 @@
     <div class="card">
       <label>Код комнаты</label>
       <input id="room" type="text" maxlength="4" placeholder="Например: AB3D"/>
-      <label>Ваш ник</label>
-      <input id="name" type="text" maxlength="32" placeholder="Иван"/>
+      <label>Ваш Telegram username</label>
+      <input id="name" type="text" maxlength="64" value="@" placeholder="@username или t.me/username"/>
+      <div class="muted" style="margin-top:4px;font-size:.82rem">
+        Укажите тег так же, как в Telegram: <b>@username</b> или ссылка вида <b>t.me/username</b>.
+      </div>
       <div style="height:12px"></div>
       <button class="btn" id="btnJoin">Войти в сессию</button>
     </div>
@@ -1441,10 +1444,36 @@
     if (left<=0) clearInterval(timerId);
   }
 
-
   $('room').addEventListener('input', e=>{
     e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,4);
   });
+
+  // Нормализация Telegram username:
+  // на входе может быть @username, t.me/username, https://t.me/username
+  // на выходе — строка вида "@username" или пустая строка, если формат некорректен.
+  function normalizeTelegramUsername(raw){
+    let s = String(raw || '').trim();
+    if (!s) return '';
+
+    // убираем протокол
+    s = s.replace(/^https?:\/\//i, '');
+
+    // убираем домен t.me/ в разных вариантах
+    if (s.toLowerCase().startsWith('t.me/')){
+      s = s.slice(5);
+    }
+
+    // если остался ведущий @ — отрезаем его
+    if (s.startsWith('@')){
+      s = s.slice(1);
+    }
+
+    // допустимые символы Telegram-username
+    const m = s.match(/^[a-zA-Z0-9_]{3,32}$/);
+    if (!m) return '';
+
+    return '@' + m[0];
+  }
 
   function sendTextAnswer(text){
     if (!text){
@@ -1458,15 +1487,23 @@
 
   $('btnJoin').onclick = ()=>{
     const code = $('room').value.trim().toUpperCase();
-    const name = $('name').value.trim();
-    if (code.length!==4){ toast('Код комнаты — 4 символа'); return; }
-    if (!name){ toast('Введите ник'); return; }
+    const rawName = $('name').value;
+    const normName = normalizeTelegramUsername(rawName);
+
+    if (code.length!==4){
+      toast('Код комнаты — 4 символа');
+      return;
+    }
+    if (!normName){
+      toast('Введите корректный Telegram username в формате @username или t.me/username');
+      return;
+    }
 
     roomCode = code;
     myHistory = [];
     ws = new WebSocket('ws://' + host + '/ws');
     ws.onopen = ()=>{
-      ws.send(JSON.stringify({ type:'join', roomCode: code, playerName: name }));
+      ws.send(JSON.stringify({ type:'join', roomCode: code, playerName: normName }));
     };
     ws.onmessage = onMessage;
     ws.onerror = ()=> toast('Ошибка соединения');
@@ -1918,7 +1955,7 @@
 
     function updateChord(){
       const deg = angleIndex * 30 + 15;
-      chord.style.transform = 'rotate(' + deg + 'deg)';
+      chord.style.transform = 'rotate(' + deg + 'deg)'+'';
       angleSpan.textContent = 'Поворот: ' + String(deg) + '°';
     }
 
@@ -2090,7 +2127,6 @@
     cv.appendChild(layout);
   }
 
-  /* Развёртки куба */
   function renderCubeNetsCard(cv){
     const wrapper = document.createElement('div');
     wrapper.className = 'cube-wrapper';
@@ -2352,7 +2388,6 @@
     cv.appendChild(legend);
   }
 
-  /* НОВАЯ КАРТОЧКА С ФИГУРАМИ ПО ТИПУ ФРУКТОВОЙ ЗАГАДКИ */
   function renderShapesEquationCard(cv){
     const container = document.createElement('div');
     container.className = 'shapes-eq';
@@ -2414,7 +2449,6 @@
       return d;
     }
 
-    /* 1) три квадрата */
     const row1 = row([
       makeSquare(),
       eqSymbol('+'),
@@ -2425,7 +2459,6 @@
       eqNumber(24)
     ]);
 
-    /* 2) квадрат + две одинаковые стопки треугольников */
     const row2 = row([
       makeSquare(),
       eqSymbol('+'),
@@ -2436,16 +2469,14 @@
       eqNumber(20)
     ]);
 
-    /* 3) стопка треугольников минус пара шестиугольников */
     const row3 = row([
       makeTriStack(3,false),
-      eqSymbol('−'),
+      eqSymbol('-'),
       makeHexPair(),
       eqSymbol('='),
       eqNumber(2)
     ]);
 
-    /* 4) один шестиугольник + квадрат + уменьшенная стопка треугольников = ? */
     const row4 = row([
       makeHexHalf(),
       eqSymbol('+'),

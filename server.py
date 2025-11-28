@@ -636,7 +636,7 @@ async def run_rounds(room: Room):
         elif tfm == "no_cards":
             desired_mode = "base"
         else:
-            if has_card and r % 3 == 0:
+            if has_card and r % 2 == 0:
                 desired_mode = "card"
             else:
                 desired_mode = "base"
