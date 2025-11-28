@@ -1105,7 +1105,7 @@
       display:flex;
       align-items:center;
       justify-content:center;
-      gap:12px;
+      gap:8px;
       flex-wrap:nowrap;
     }
     .shapes-eq-row .eq-symbol{
@@ -1440,6 +1440,7 @@
     $('timer').textContent = fmt(left);
     if (left<=0) clearInterval(timerId);
   }
+
 
   $('room').addEventListener('input', e=>{
     e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,4);
